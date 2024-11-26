@@ -40,7 +40,11 @@ const development = {
         },
       },
       {
-        test: /\.(s(a|c)ss)$/,
+        test: /\.css$/i, // For plain .css files
+        use: ["style-loader", "css-loader"],
+      },
+      {
+        test: /\.(s(a|c)ss)$/, // For .scss and .sass files
         use: ["style-loader", "css-loader", "sass-loader"],
       },
       {
