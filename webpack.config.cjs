@@ -40,6 +40,10 @@ const development = {
         },
       },
       {
+        test: /\.(png|jpe?g|gif|svg)$/i,
+        type: 'asset/resource', // Handles image assets automatically
+      },
+      {
         test: /\.css$/i, // For plain .css files
         use: ["style-loader", "css-loader"],
       },
