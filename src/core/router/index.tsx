@@ -6,10 +6,13 @@ import {
   getPageNameFromPage,
   getPageValueFromPage,
 } from '../../tools';
-import { PageName, Page } from '../../types';
+import { PageName } from '../../types';
 import { usePreloadData } from '../../hooks';
 import { PreloadDataContext } from '../../contexts';
 import { fetchUserBackend, setCookieServer } from '../../client-utils';
+import { getMessagesManager } from '../messages'
+
+getMessagesManager()
 
 function usePageMonitor({
   pageName: _pageName = 'home',
@@ -21,9 +24,10 @@ function usePageMonitor({
     function changePage({ detail }: { detail: { pageName: PageName } }) {
       setPage(detail.pageName);
     }
-    if (typeof document !== 'undefined')
+    if (typeof document !== 'undefined') {
       // @ts-ignore: Unreachable code error
       window.addEventListener('changePage', changePage);
+    }
     return () => {
       if (typeof document !== 'undefined')
         // @ts-ignore: Unreachable code error
