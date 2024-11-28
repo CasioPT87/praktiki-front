@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import routes from '../../routes';
 import goTo from './utils/goTo';
+import { SocketIOClient } from 'socket.io-client';
 import {
   getAllowedPage,
   getPageNameFromPage,
@@ -8,11 +9,9 @@ import {
 } from '../../tools';
 import { PageName } from '../../types';
 import { usePreloadData } from '../../hooks';
-import { PreloadDataContext } from '../../contexts';
+import { PreloadDataContext, MessagesSocketContext } from '../../contexts';
 import { fetchUserBackend, setCookieServer } from '../../client-utils';
-import { getMessagesManager } from '../messages'
-
-getMessagesManager()
+import { getMessagesManager } from '../messages';
 
 function usePageMonitor({
   pageName: _pageName = 'home',
@@ -58,7 +57,26 @@ interface AuthProps {
   }) => React.ReactNode;
 }
 
-function Auth({ initialUser, children }: AuthProps): React.JSX.Element {
+export const MessageConnector: React.FC<any> = ({ children }) => {
+  const [socket, setSocket] = useState<SocketIOClient | null>(null);
+  useEffect(() => {
+    async function connect() {
+      const socket = await getMessagesManager();
+      setSocket(socket);
+    }
+    connect();
+  }, []);
+
+  return (
+    <MessagesSocketContext.Provider
+      value={socket}
+    >
+      {children}
+    </MessagesSocketContext.Provider>
+  );
+};
+
+const Auth: React.FC<AuthProps> = ({ initialUser, children }: AuthProps) => {
   const [user, setUser] = useState<Object | null>(initialUser);
 
   useEffect(() => {

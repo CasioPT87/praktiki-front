@@ -1,7 +1,6 @@
 export const getMessagesManager = () => {
   if (typeof document !== 'undefined') {
     return import('socket.io-client').then(({ io }) => {
-      console.log('holiiiiiiiiii')
       const socket = io(process.env.BACKEND_URL);
     
       socket.on('connect', () => {
@@ -13,11 +12,10 @@ export const getMessagesManager = () => {
     }).catch(e => {
       console.error(e.message)
       return
-    })
-  
-    
+    })  
   }
 }
+
 
 
 

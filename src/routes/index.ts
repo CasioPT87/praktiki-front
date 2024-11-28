@@ -3,6 +3,7 @@ import Profile from "../pages/profile";
 import Login from "../pages/login";
 import { Routes } from "../types";
 import Articles from "../pages/articles";
+import Messages from '../pages/messages'
 
 const routes: Routes = {
   home: {
@@ -21,6 +22,10 @@ const routes: Routes = {
   login: {
     path: "/login",
     pageComponent: Login,
+  },
+  messages: {
+    path: "/messages",
+    pageComponent: Messages,
   },
 };
 

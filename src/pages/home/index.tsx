@@ -34,6 +34,15 @@ const Home: React.FC<{ user: PlainObject | null }> = ({ user }) => {
         Go to Articles (is Private)
       </button>
       <button
+        id="test-home-goto-messages"
+        className="button-test"
+        onClick={() =>
+          goTo({ pageName: 'messages' })
+        }
+      >
+        Go to Messages
+      </button>
+      <button
         id="test-home-goto-login"
         className="button-test"
         onClick={() =>

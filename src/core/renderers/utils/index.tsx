@@ -1,6 +1,6 @@
 import React from 'react';
 import { Provider } from 'react-redux';
-import { Router, Auth } from '../../router';
+import { Router, Auth, MessageConnector } from '../../router';
 import { Page, Store } from '../../../types';
 import { getPageNameFromPage } from '../../../tools';
 
@@ -19,12 +19,14 @@ const createMarkup = ({
     <Provider store={store}>
       <Auth initialUser={user}>
         {({ user: _user, setUser }) => (
-          <Router
-            initialPageName={getPageNameFromPage({ page })}
-            user={_user}
-            preloadData={preloadData}
-            setUser={setUser}
-          />
+          <MessageConnector>
+            <Router
+              initialPageName={getPageNameFromPage({ page })}
+              user={_user}
+              preloadData={preloadData}
+              setUser={setUser}
+            />
+          </MessageConnector>
         )}
       </Auth>
     </Provider>
