@@ -4,6 +4,7 @@ import Login from "../pages/login";
 import { Routes } from "../types";
 import Articles from "../pages/articles";
 import Messages from '../pages/messages'
+import Conversation from "../pages/conversation.tsx";
 
 const routes: Routes = {
   home: {
@@ -26,6 +27,10 @@ const routes: Routes = {
   messages: {
     path: "/messages",
     pageComponent: Messages,
+  },
+  conversation: {
+    path: "/conversation",
+    pageComponent: Conversation,
   },
 };
 
