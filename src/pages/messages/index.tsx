@@ -6,25 +6,31 @@ const Messages: React.FC = () => {
   const [messages, setMessages] = useState<string[]>([]);
   const socket = useContext(MessagesSocketContext);
 
+
+
+  useEffect(() => {
+    console.log('start')
+  }, [])
+
   useEffect(() => {
     if (socket) {
         socket.on('chat message', (message: string) => {
-            setMessages([...message, message])
+            setMessages([...messages, message])
         });
     }
-  }, [socket])
+  }, [socket, messages])
   
 
   function sendMessage() {
     socket.emit('chat message', value);
-    //setValue('')
+    setValue('')
   }
 
   return (
     <>
-      {messages.map(message => {
+      {messages.map((message, index) => {
         return (
-            <div>{message}</div>
+            <div key={message + index}>{message}</div>
         )
       })}
       <input

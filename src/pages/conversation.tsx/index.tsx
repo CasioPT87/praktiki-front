@@ -1,8 +1,17 @@
 // @ts-nocheck
-import React from 'react';
-import '../../core/webrtc'
+import React, { useEffect, useContext } from 'react';
+import { setupConversation } from '../../core/messages';
+import { MessagesSocketContext } from '../../contexts';
 
-const Conversation: React.FC<> = ({ user }) => {
+
+const Conversation: React.FC<> = () => {
+
+  const socket = useContext(MessagesSocketContext);
+
+  useEffect(() => {
+    if (socket) setupConversation({ socket })
+  }, [socket])
+
   return (
     <div>
       conversation
