@@ -42,7 +42,6 @@ export const setupConversation = async ({ socket }) => {
 
   //when a client initiates a call
   const call = async (e) => {
-    console.log('call!!!!');
     await fetchUserMedia();
 
     //peerConnection is all set with our STUN servers sent over

@@ -6,8 +6,6 @@ const Messages: React.FC = () => {
   const [messages, setMessages] = useState<string[]>([]);
   const socket = useContext(MessagesSocketContext);
 
-
-
   useEffect(() => {
     console.log('start')
   }, [])

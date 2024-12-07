@@ -30,6 +30,11 @@ export default [
         HTMLInputElement: true,
         Element: true,
         MouseEvent: true,
+        HTMLVideoElement: true,
+        MediaStream: true,
+        RTCPeerConnection: true,
+        RTCIceCandidateInit: true,
+        RTCSessionDescriptionInit
       },
     },
 
