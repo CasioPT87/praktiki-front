@@ -1,12 +1,12 @@
 type ConversationStreamManagerType = 'local' | 'remote';
 type OfferObj = {
-    offererUserName: string
-    offer: RTCSessionDescriptionInit
-    offerIceCandidates: RTCIceCandidateInit[]
-    answererUserName: string
-    answer: RTCSessionDescriptionInit
-    answererIceCandidates: RTCIceCandidateInit[]
-}
+  offererUserName: string;
+  offer: RTCSessionDescriptionInit;
+  offerIceCandidates: RTCIceCandidateInit[];
+  answererUserName: string;
+  answer: RTCSessionDescriptionInit;
+  answererIceCandidates: RTCIceCandidateInit[];
+};
 
 class ConversationStreamManager {
   videoElement: HTMLVideoElement | null = null;
@@ -60,54 +60,117 @@ class ConversationStreamManager {
 }
 
 async function createPeerConnection() {
-    const peerConfiguration = {
-        iceServers: [
-          {
-            urls: ['stun:stun.l.google.com:19302', 'stun:stun1.l.google.com:19302'],
-          },
-        ],
-      };
-    return await new RTCPeerConnection(peerConfiguration)
+  const peerConfiguration = {
+    iceServers: [
+      {
+        urls: ['stun:stun.l.google.com:19302', 'stun:stun1.l.google.com:19302'],
+      },
+    ],
+  };
+  return await new RTCPeerConnection(peerConfiguration);
 }
 
-async function init() {
-    const localStreamManager = new ConversationStreamManager({ type: 'local' })
-    const remoteStreamManager = new ConversationStreamManager({ type: 'remote' })
-    localStreamManager.setVideoDomElement()
-    await localStreamManager.setStream()
-    remoteStreamManager.setVideoDomElement()
-    await remoteStreamManager.setStream()
-    const peerConnection = await createPeerConnection()
-    return {
-        localStreamManager,
-        remoteStreamManager,
-        peerConnection
-    }
-}
+export class ConversationManager {
+  peerConnection: RTCPeerConnection | null = null;
+  localStreamManager: ConversationStreamManager | null = null;
+  remoteStreamManager: ConversationStreamManager | null = null;
+  offers: OfferObj[] = [];
+  userName: string | null = null;
+  didIOffer: boolean = false;
+  socket: any = null;
 
-async function call({ socket }: { socket: any }) {
-    const { peerConnection, localStreamManager } = await init()
-    localStreamManager.addTracksToConnection({ peerConnection })
-    const offer: RTCSessionDescriptionInit | undefined = await peerConnection.createOffer()
-    if (!offer) return 
-    peerConnection.setLocalDescription(offer)
-    socket.emit('newOffer', offer)
-}
+  constructor({ socket, userName }: { socket: any; userName: string }) {
+    this.socket = socket;
+    this.userName = userName;
+  }
 
-async function answer({ offerObj, socket }: { offerObj: OfferObj, socket: any }) {
-    const { peerConnection } = await init()
-    const answer = await peerConnection.createAnswer()
-    peerConnection.setLocalDescription(answer)
-    peerConnection.setRemoteDescription(offerObj.offer);
+  init = async () => {
+    this.localStreamManager = new ConversationStreamManager({ type: 'local' });
+    this.remoteStreamManager = new ConversationStreamManager({
+      type: 'remote',
+    });
+    this.localStreamManager.setVideoDomElement();
+    await this.localStreamManager.setStream();
+    this.remoteStreamManager.setVideoDomElement();
+    await this.remoteStreamManager.setStream();
+    this.peerConnection = await createPeerConnection();
+    return this
+  }
+
+  addOffer = (offer: OfferObj) => {
+    this.offers = [...this.offers, offer];
+  }
+
+  setOffers = (offers: OfferObj[]) => {
+    this.offers = offers;
+  }
+
+  setSocketListeners = () => {
+    this.socket.on('newOfferAwaiting', (offer: OfferObj) => {
+      this.addOffer(offer);
+    });
+    // cuando se conecta de primeras, se trae todas la ofertas del servidor
+    this.socket.on('availableOffers', (offers: OfferObj[]) => {
+      this.setOffers(offers);
+    });
+    this.socket.on(
+      'receivedIceCandidateFromServer',
+      (iceCandidate: RTCIceCandidateInit) => {
+        if (this.peerConnection)
+          this.peerConnection.addIceCandidate(iceCandidate);
+      }
+    );
+    this.socket.on('answerResponse', (offerObj: OfferObj) => {
+      if (this.peerConnection)
+        this.peerConnection.setRemoteDescription(offerObj.answer);
+    });
+  }
+
+  setPeerConnectionListeners = () => {
+    if (!this.peerConnection) return;
+    this.peerConnection.addEventListener('icecandidate', (e) => {
+      // disparado por peerConnection.setLocalDescription
+      console.log('........Ice candidate found!...... did I offer: ' + true);
+      if (e.candidate) {
+        this.socket.emit('sendIceCandidateToSignalingServer', {
+          iceCandidate: e.candidate,
+          iceUserName: this.userName,
+          didIOffer: this.didIOffer,
+        });
+      }
+    });
+  }
+
+  call = async () => {
+    const { socket, peerConnection, localStreamManager } = this;
+    if (!localStreamManager || !peerConnection || !socket) return;
+    this.didIOffer = true;
+    localStreamManager.addTracksToConnection({ peerConnection });
+    const offer: RTCSessionDescriptionInit | undefined =
+      await peerConnection.createOffer();
+    if (!offer) return;
+    peerConnection.setLocalDescription(offer); // esto dispara el evento 'icecandidate' que acabas de declarr arriba
+    socket.emit('newOffer', offer);
+  }
+
+  answer = async ({ offerObj }: { offerObj: OfferObj }) => {
+    const { socket, peerConnection } = this;
+    if (!peerConnection || !socket) return;
+    this.didIOffer = false
+    const answer = await peerConnection.createAnswer();
+    peerConnection.setLocalDescription(answer);
+    peerConnection.setRemoteDescription(offerObj.offer); // esto no lo tengo claro, porque se repite luego (con lo mismo?)
     offerObj.answer = answer;
     // le mandamos el offerObj (con una answer que le hemos metido)
     // esperamos que nos devuelva los ice candidates
-    const offerIceCandidates: RTCIceCandidateInit[] = await socket.emitWithAck('newAnswer', offerObj);
+    const offerIceCandidates: RTCIceCandidateInit[] = await socket.emitWithAck(
+      'newAnswer',
+      offerObj
+    );
+
     // le metemos los iceCandidates a la peerConnection
     offerIceCandidates.forEach((c) => {
-        peerConnection.addIceCandidate(c);
-        console.log('======Added Ice Candidate======');
+      peerConnection.addIceCandidate(c);
     });
+  }
 }
-
-
