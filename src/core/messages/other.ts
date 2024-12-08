@@ -11,7 +11,7 @@ type OfferObj = {
 class ConversationStreamManager {
   videoElement: HTMLVideoElement | null = null;
   stream: MediaStream | null = null;
-  type: ConversationStreamManagerType | null = null; // 'local' or 'remote'
+  type: ConversationStreamManagerType | null = null;
 
   constructor({ videoElement, type }: { videoElement: HTMLVideoElement, type: ConversationStreamManagerType }) {
     this.videoElement = videoElement;
@@ -34,7 +34,6 @@ class ConversationStreamManager {
   async setStream() {
     const stream: MediaStream = await this.getStream();
     this.stream = stream;
-    console.log('set stream', this.videoElement)
     if (this.videoElement) this.videoElement.srcObject = stream;
   }
 
@@ -73,11 +72,12 @@ export class ConversationManager {
   localVideoElement: HTMLVideoElement | null = null
   remoteVideoElement: HTMLVideoElement | null = null
 
-  constructor({ socket, userName, localVideoElement, remoteVideoElement }: { socket: any; userName: string, localVideoElement: HTMLVideoElement, remoteVideoElement: HTMLVideoElement }) {
+  constructor({ socket, userName, localVideoElement, remoteVideoElement, setOffers }: { socket: any; userName: string, localVideoElement: HTMLVideoElement, remoteVideoElement: HTMLVideoElement, setOffers: React.Dispatch<React.SetStateAction<any[]>> }) {
     this.socket = socket;
     this.userName = userName;
     this.localVideoElement = localVideoElement
     this.remoteVideoElement = remoteVideoElement
+    this.setOffers = setOffers
   }
 
   init = async () => {
@@ -90,33 +90,42 @@ export class ConversationManager {
     await this.remoteStreamManager.setStream();
     this.peerConnection = await createPeerConnection();
     this.localStreamManager.addTracksToConnection({ peerConnection: this.peerConnection })
+    this.setSocketListeners()
+    this.setPeerConnectionListeners()
+
     return this
   }
 
   addOffer = (offer: OfferObj) => {
     this.offers = [...this.offers, offer];
+    this.setOffers((offers) => [...offers, offer])
   }
 
   setOffers = (offers: OfferObj[]) => {
     this.offers = offers;
+    this.setOffers(offers)
   }
 
   setSocketListeners = () => {
     this.socket.on('newOfferAwaiting', (offer: OfferObj) => {
+      console.log('new offer awaiting ha llegado!!!')
       this.addOffer(offer);
     });
     // cuando se conecta de primeras, se trae todas la ofertas del servidor
     this.socket.on('availableOffers', (offers: OfferObj[]) => {
+      console.log('estan son las available offers para ti')
       this.setOffers(offers);
     });
     this.socket.on(
       'receivedIceCandidateFromServer',
       (iceCandidate: RTCIceCandidateInit) => {
+        console.log('received candidate from server!')
         if (this.peerConnection)
           this.peerConnection.addIceCandidate(iceCandidate);
       }
     );
     this.socket.on('answerResponse', (offerObj: OfferObj) => {
+      console.log('answer response!!')
       if (this.peerConnection)
         this.peerConnection.setRemoteDescription(offerObj.answer);
     });
@@ -135,6 +144,17 @@ export class ConversationManager {
         });
       }
     });
+
+    // esto pasa cuando la conexion del otro anade tracks? no se...
+    this.peerConnection.addEventListener('track',e=>{
+      console.log("Got a track from the other peer!! How excting")
+      // console.log(e)
+      e.streams[0].getTracks().forEach(track=>{
+          if (!this?.remoteStreamManager?.stream) return
+          this.remoteStreamManager.stream.addTrack(track);
+          console.log("Here's an exciting moment... fingers cross")
+      })
+  })
   }
 
   call = async () => {
@@ -152,9 +172,10 @@ export class ConversationManager {
     const { socket, peerConnection } = this;
     if (!peerConnection || !socket) return;
     this.didIOffer = false
+    console.log('answer!!')
+    peerConnection.setRemoteDescription(offerObj.offer);
     const answer = await peerConnection.createAnswer();
     peerConnection.setLocalDescription(answer);
-    peerConnection.setRemoteDescription(offerObj.offer); // esto no lo tengo claro, porque se repite luego (con lo mismo?)
     offerObj.answer = answer;
     // le mandamos el offerObj (con una answer que le hemos metido)
     // esperamos que nos devuelva los ice candidates

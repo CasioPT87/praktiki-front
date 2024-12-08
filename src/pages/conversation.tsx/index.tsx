@@ -2,7 +2,6 @@
 import React, { useState, useEffect, useContext, useRef } from 'react';
 import { ConversationManager } from '../../core/messages/other';
 import { MessagesSocketContext } from '../../contexts';
-import { func } from 'prop-types';
 
 const Conversation: React.FC<> = () => {
   const callElement = useRef(null);
@@ -12,17 +11,18 @@ const Conversation: React.FC<> = () => {
   const socket = useContext(MessagesSocketContext);
   const [conversationManager, setConversationManager] =
     useState<ConversationManager>(null);
+  const [offers, setOffers] = useState<any[]>([])
 
   useEffect(() => {
     async function setUpConversationManager() {
-      console.log('hola', localVideoElement)
       if (socket && localVideoElement.current && remoteVideoElement.current) {
-        console.log(localVideoElement);
+        console.log(socket.auth)
         const cm = await new ConversationManager({
           socket,
-          userName: 'sergio',
+          userName: socket.auth.userName,
           localVideoElement: localVideoElement.current,
           remoteVideoElement: remoteVideoElement.current,
+          setOffers
         }).init();
         setConversationManager(cm);
       }
@@ -30,17 +30,28 @@ const Conversation: React.FC<> = () => {
     setUpConversationManager();
   }, [socket, localVideoElement, remoteVideoElement]);
 
+
+
   function call() {
     if (conversationManager) {
       conversationManager.call()
     }
   }
 
+  function answer(offerObj) {
+    if (conversationManager) {
+      conversationManager.answer({ offerObj })
+    }
+  }
+
+  console.log('offers', conversationManager?.offers)
+
   return (
     <div>
       conversation
       <div className="container">
         <div className="row mb-3 mt-3 justify-content-md-center">
+          {offers.map(offerObj => <button onClick={() => answer(offerObj)}>{'oferta de: ' + offerObj.offererUserName || 'oferta sin nombre ?'}</button>)}
           <div id="user-name"></div>
           <button
             ref={callElement}

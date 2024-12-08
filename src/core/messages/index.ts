@@ -1,4 +1,4 @@
-const userName = 'Rob-' + Math.floor(Math.random() * 100000);
+const userName = 'user-' + Math.floor(Math.random() * 100000);
 const password = 'x';
 
 export const getMessagesManager = () => {
