@@ -1,25 +1,40 @@
 // @ts-nocheck
-import React, { useState, useEffect, useContext } from 'react';
+import React, { useState, useEffect, useContext, useRef } from 'react';
 import { ConversationManager } from '../../core/messages/other';
 import { MessagesSocketContext } from '../../contexts';
-
+import { func } from 'prop-types';
 
 const Conversation: React.FC<> = () => {
+  const callElement = useRef(null);
+  const localVideoElement = useRef(null);
+  const remoteVideoElement = useRef(null);
 
   const socket = useContext(MessagesSocketContext);
-  const [conversationManager, setConversationManager] = useState<ConversationManager>(null)
+  const [conversationManager, setConversationManager] =
+    useState<ConversationManager>(null);
 
   useEffect(() => {
     async function setUpConversationManager() {
-      if (socket) {
-        const cm = await new ConversationManager({ socket, userName: 'sergio' }).init()
-        setConversationManager(cm)
+      console.log('hola', localVideoElement)
+      if (socket && localVideoElement.current && remoteVideoElement.current) {
+        console.log(localVideoElement);
+        const cm = await new ConversationManager({
+          socket,
+          userName: 'sergio',
+          localVideoElement: localVideoElement.current,
+          remoteVideoElement: remoteVideoElement.current,
+        }).init();
+        setConversationManager(cm);
       }
     }
-    setUpConversationManager()
-  }, [socket])
+    setUpConversationManager();
+  }, [socket, localVideoElement, remoteVideoElement]);
 
-  if (!conversationManager) return null
+  function call() {
+    if (conversationManager) {
+      conversationManager.call()
+    }
+  }
 
   return (
     <div>
@@ -27,7 +42,12 @@ const Conversation: React.FC<> = () => {
       <div className="container">
         <div className="row mb-3 mt-3 justify-content-md-center">
           <div id="user-name"></div>
-          <button id="call" className="btn btn-primary col-1" onClick={conversationManager.call}>
+          <button
+            ref={callElement}
+            id="call"
+            className="btn btn-primary col-1"
+            onClick={call}
+          >
             Call!
           </button>
           <button id="hangup" className="col-1" className="btn btn-primary">
@@ -41,6 +61,7 @@ const Conversation: React.FC<> = () => {
               Waiting for answer...
             </div>
             <video
+              ref={localVideoElement}
               className="video-player"
               id="local-video"
               autoPlay
@@ -49,6 +70,7 @@ const Conversation: React.FC<> = () => {
             ></video>
           </div>
           <video
+            ref={remoteVideoElement}
             className="video-player"
             id="remote-video"
             autoPlay

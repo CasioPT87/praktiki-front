@@ -13,18 +13,9 @@ class ConversationStreamManager {
   stream: MediaStream | null = null;
   type: ConversationStreamManagerType | null = null; // 'local' or 'remote'
 
-  constructor({ type }: { type: ConversationStreamManagerType }) {
-    this.type = type;
-  }
-
-  setVideoDomElement() {
-    if (this.type === 'local') {
-      if (this.videoElement)
-        this.videoElement = document.querySelector('#local-video');
-    } else {
-      if (this.videoElement)
-        this.videoElement = document.querySelector('#remote-video');
-    }
+  constructor({ videoElement, type }: { videoElement: HTMLVideoElement, type: ConversationStreamManagerType }) {
+    this.videoElement = videoElement;
+    this.type = type
   }
 
   getStream() {
@@ -43,6 +34,7 @@ class ConversationStreamManager {
   async setStream() {
     const stream: MediaStream = await this.getStream();
     this.stream = stream;
+    console.log('set stream', this.videoElement)
     if (this.videoElement) this.videoElement.srcObject = stream;
   }
 
@@ -78,22 +70,26 @@ export class ConversationManager {
   userName: string | null = null;
   didIOffer: boolean = false;
   socket: any = null;
+  localVideoElement: HTMLVideoElement | null = null
+  remoteVideoElement: HTMLVideoElement | null = null
 
-  constructor({ socket, userName }: { socket: any; userName: string }) {
+  constructor({ socket, userName, localVideoElement, remoteVideoElement }: { socket: any; userName: string, localVideoElement: HTMLVideoElement, remoteVideoElement: HTMLVideoElement }) {
     this.socket = socket;
     this.userName = userName;
+    this.localVideoElement = localVideoElement
+    this.remoteVideoElement = remoteVideoElement
   }
 
   init = async () => {
-    this.localStreamManager = new ConversationStreamManager({ type: 'local' });
+    if (!this.localVideoElement || !this.remoteVideoElement) return
+    this.localStreamManager = new ConversationStreamManager({ type: 'local', videoElement: this.localVideoElement });
     this.remoteStreamManager = new ConversationStreamManager({
-      type: 'remote',
+      type: 'remote', videoElement: this.remoteVideoElement
     });
-    this.localStreamManager.setVideoDomElement();
     await this.localStreamManager.setStream();
-    this.remoteStreamManager.setVideoDomElement();
     await this.remoteStreamManager.setStream();
     this.peerConnection = await createPeerConnection();
+    this.localStreamManager.addTracksToConnection({ peerConnection: this.peerConnection })
     return this
   }
 
@@ -145,7 +141,6 @@ export class ConversationManager {
     const { socket, peerConnection, localStreamManager } = this;
     if (!localStreamManager || !peerConnection || !socket) return;
     this.didIOffer = true;
-    localStreamManager.addTracksToConnection({ peerConnection });
     const offer: RTCSessionDescriptionInit | undefined =
       await peerConnection.createOffer();
     if (!offer) return;
