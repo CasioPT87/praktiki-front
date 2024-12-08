@@ -1,6 +1,6 @@
 // @ts-nocheck
 import React, { useState, useEffect, useContext, useRef } from 'react';
-import { ConversationManager } from '../../core/messages/other';
+import { ConversationManager } from '../../core/messages/video';
 import { MessagesSocketContext } from '../../contexts';
 
 const Conversation: React.FC<> = () => {
