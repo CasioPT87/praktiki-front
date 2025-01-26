@@ -1,5 +1,5 @@
 // @ts-nocheck
-import React from 'react';
+import React, { useEffect } from 'react';
 import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
 import goTo from '../../core/router/utils/goTo';
 import '../../styles/index.scss';
@@ -16,7 +16,18 @@ L.Icon.Default.mergeOptions({
 });
 
 const Home: React.FC<{ user: PlainObject | null }> = ({ user }) => {
+
   const position = [51.505, -0.09]; // Example coordinates
+
+  useEffect(() => {
+    async function example () {
+      const res = await fetch(process.env.BACKEND_URL + '/hello')
+      console.log(res)
+    }
+
+    example()
+  }, [])
+
   return (
     <div>
       <h1>Home Test Page</h1>
