@@ -66,10 +66,19 @@ const Home: React.FC<{ user: PlainObject | null }> = ({ user }) => {
         id="test-home-goto-login"
         className="button-test"
         onClick={() =>
-          goTo({ pageName: 'login', queryString: [['myKey', 'myValue']] })
+          goTo({ pageName: 'login' })
         }
       >
         Go to Login
+      </button>
+      <button
+        id="test-home-goto-login"
+        className="button-test"
+        onClick={() =>
+          goTo({ pageName: 'register'})
+        }
+      >
+        Go to Register
       </button>
       {user && <pre>{JSON.stringify(user)}</pre>}
       <p id="logged">logged: {user ? 'true' : 'false'}</p>

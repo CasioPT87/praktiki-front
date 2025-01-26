@@ -5,6 +5,7 @@ import { Routes } from "../types";
 import Articles from "../pages/articles";
 import Messages from '../pages/messages'
 import Conversation from "../pages/conversation.tsx";
+import Register from "../pages/register";
 
 const routes: Routes = {
   home: {
@@ -31,6 +32,10 @@ const routes: Routes = {
   conversation: {
     path: "/conversation",
     pageComponent: Conversation,
+  },
+  register: {
+    path: "/user/register",
+    pageComponent: Register,
   },
 };
 
