@@ -1,4 +1,5 @@
 const path = require("path");
+const fs = require('fs')
 const webpack = require("webpack");
 const dotenv = require("dotenv");
 const HtmlWebpackPlugin = require("html-webpack-plugin");
@@ -17,6 +18,10 @@ const development = {
     port: 8080,
     static: {
       directory: path.join(__dirname, "src/dist/dev/"),
+    },
+    https: {
+      key: fs.readFileSync('cert.key'), // Path to your key
+      cert: fs.readFileSync('cert.crt'), // Path to your certificate
     },
     historyApiFallback: true,
     client: {

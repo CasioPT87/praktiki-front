@@ -109,7 +109,7 @@ export class ConversationManager {
   setSocketListeners = () => {
     // esto pasa cuando cualquier usuario -menos nostros- crea una offer
     this.socket.on('newOfferAwaiting', (offer: OfferObj) => {
-      console.log('alguien ha hecho una oferta')
+      console.log('alguien ha hecho una oferta', offer)
       this.addOffer(offer);
     });
     // cuando se conecta de primeras, se trae todas la ofertas del servidor

@@ -21,7 +21,7 @@ const Home: React.FC<{ user: PlainObject | null }> = ({ user }) => {
 
   useEffect(() => {
     async function example () {
-      const res = await fetch(process.env.BACKEND_URL + '/hello')
+      const res = await fetch(process.env.BACKEND_URL + '/hello', { rejectUnauthorized: false })
       console.log(res)
     }
 
