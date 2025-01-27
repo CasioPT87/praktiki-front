@@ -2,8 +2,6 @@ import { manageError } from '../tools';
 
 const backendUrl = process.env.BACKEND_URL;
 const serverUrl = process.env.SERVER_URL;
-const backendAuthPath = process.env.BACKEND_AUTH_PATH;
-const backendUserPath = process.env.BACKEND_USER_PATH;
 const cookiesPath = process.env.COOKIES_PATH;
 const cookiesBackendName = process.env.PORTAL_SUFIX;
 const backendDeleteSessionPath = process.env.BACKEND_CLOSE_AUTH_PATH;
@@ -16,7 +14,7 @@ export async function registerUser({
   password: string;
 }): Promise<{ token: string } | null> {
   try {
-    if (!backendUrl || !backendAuthPath)
+    if (!backendUrl)
       throw new Error('Problem finding global url');
     const response = await fetch(backendUrl + '/users/register', {
       method: 'POST',
@@ -39,7 +37,7 @@ export async function registerUser({
   }
 }
 
-export async function fetchTokenBackend({
+export async function loginUser({
   username,
   password,
 }: {
@@ -47,10 +45,10 @@ export async function fetchTokenBackend({
   password: string;
 }): Promise<{ token: string } | null> {
   try {
-    if (!backendUrl || !backendAuthPath)
+    if (!backendUrl)
       throw new Error('Problem finding global url');
     const reliesOnCookies = username && password;
-    const response = await fetch(backendUrl + backendAuthPath, {
+    const response = await fetch(backendUrl + '/users/login', {
       method: 'POST',
       ...(reliesOnCookies
         ? {
@@ -82,22 +80,22 @@ export async function fetchUserBackend({
   token: string | null;
 }): Promise<Object | null> {
   try {
-    if (!backendUrl || !backendUserPath) {
-      throw new Error('Problem finding global url');
-    }
-    const reliesOnCookies = !token;
-    const response = await fetch(backendUrl + backendUserPath, {
-      credentials: 'include',
-      method: 'GET',
-      ...(reliesOnCookies
-        ? {}
-        : { headers: { Authorization: `Bearer ${token}` } }),
-    });
-    if (response.ok) {
-      const { data: user } = await response.json();
-      return user;
-    }
-    return null;
+    // if (!backendUrl || !backendUserPath) {
+    //   throw new Error('Problem finding global url');
+    // }
+    // const reliesOnCookies = !token;
+    // const response = await fetch(backendUrl + backendUserPath, {
+    //   credentials: 'include',
+    //   method: 'GET',
+    //   ...(reliesOnCookies
+    //     ? {}
+    //     : { headers: { Authorization: `Bearer ${token}` } }),
+    // });
+    // if (response.ok) {
+    //   const { data: user } = await response.json();
+    //   return user;
+    // }
+    // return null;
   } catch (e) {
     manageError({ error: e });
     return null;

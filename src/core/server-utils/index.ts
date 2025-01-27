@@ -1,5 +1,4 @@
 const backendUrl = process.env.BACKEND_URL as string;
-const backendUserPath = process.env.BACKEND_USER_PATH as string;
 
 export async function fetchUser({
   token,
@@ -8,16 +7,16 @@ export async function fetchUser({
 }): Promise<Object | null> {
   if (!token) return null
   try {
-    const response = await fetch(backendUrl + backendUserPath, {
-      method: 'GET',
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    });
-    if (response.ok) {
-      const { data: user } = await response.json();
-      return user;
-    }
+    // const response = await fetch(backendUrl + backendUserPath, {
+    //   method: 'GET',
+    //   headers: {
+    //     Authorization: `Bearer ${token}`,
+    //   },
+    // });
+    // if (response.ok) {
+    //   const { data: user } = await response.json();
+    //   return user;
+    // }
     return null;
   } catch (e) {
     if (e instanceof Error) {

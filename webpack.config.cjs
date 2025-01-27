@@ -70,8 +70,6 @@ const development = {
     // variables del .env que van a estar visibles en el codigo que corre el navegador
     new webpack.EnvironmentPlugin([
       "BACKEND_URL",
-      "BACKEND_AUTH_PATH",
-      "BACKEND_USER_PATH",
       "COOKIES_PATH",
       "BACKEND_CLOSE_AUTH_PATH",
       "SERVER_URL",
@@ -108,8 +106,6 @@ const productionFrontBundle = {
     // variables del .env que van a estar visibles en el codigo que corre el navegador
     new webpack.EnvironmentPlugin([
       "BACKEND_URL",
-      "BACKEND_AUTH_PATH",
-      "BACKEND_USER_PATH",
       "COOKIES_PATH",
       "BACKEND_CLOSE_AUTH_PATH",
       "SERVER_URL",

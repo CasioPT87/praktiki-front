@@ -25,7 +25,7 @@ const Home: React.FC<{ user: PlainObject | null }> = ({ user }) => {
       console.log(res)
     }
 
-    example()
+    //example()
   }, [])
 
   return (

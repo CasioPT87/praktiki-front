@@ -33,9 +33,7 @@ touch .env
 ```bash
 BACKEND_URL=http://localhost:3050
 SERVER_URL=http://localhost:9990
-BACKEND_AUTH_PATH=/api/v2/login
 BACKEND_CLOSE_AUTH_PATH=/api/v1/logout
-BACKEND_USER_PATH=/api/v2/users
 
 PORTAL_SUFIX=genei.es # this must be the same that it is in the backend server (although its only for development, so the cookies auth work)
 

@@ -1,7 +1,5 @@
 import React, { useState } from 'react';
 import {
-  fetchTokenBackend,
-  fetchUserBackend,
   setCookieServer,
   deleteCookie,
   registerUser,
@@ -26,7 +24,6 @@ function Register({
     });
 
     if (tokenResponse?.token) {
-      const user = await fetchUserBackend({ token: tokenResponse.token });
       if (user) {
         setUser({ user });
         await setCookieServer({ token: tokenResponse.token });
@@ -38,11 +35,11 @@ function Register({
     <>
       <h1>Register page</h1>
       <div style={{ display: 'flex', flexDirection: 'column'}}>
-      <label for="nameField">
+      <label htmlFor="nameField">
         name
         <input id="nameField" type="text" value={nameValue} onChange={(e) => setNameValue(e.target.value)} />
       </label>
-      <label for="passField">
+      <label htmlFor="passField">
         password
         <input id="passField" type="text" value={passValue} onChange={(e) => setPassValue(e.target.value)}/>
       </label>
