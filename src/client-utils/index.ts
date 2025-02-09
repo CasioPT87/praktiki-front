@@ -73,13 +73,13 @@ export async function fetchUserBackend({
   token,
 }: {
   token: string | null;
-}): Promise<Object | null> {
+}): Promise<{ } | null> {
   try {
     if (!backendUrl) {
       throw new Error('Problem finding global url');
     }
     const reliesOnCookies = !token;
-    const response = await fetch(backendUrl + 'users/', {
+    const response = await fetch(backendUrl + '/users/profile', {
       credentials: 'include',
       method: 'GET',
       ...(reliesOnCookies
@@ -87,7 +87,7 @@ export async function fetchUserBackend({
         : { headers: { Authorization: `Bearer ${token}` } }),
     });
     if (response.ok) {
-      const { data: user } = await response.json();
+      const user = await response.json();
       return user;
     }
     return null;
