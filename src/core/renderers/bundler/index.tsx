@@ -44,10 +44,7 @@ if (process.env.NODE_ENV === "production") {
     const store = setUpStore();
     const localstorageToken = localStorage.getItem(process.env.APP_NAME || '');
     const token = localstorageToken || null
-    console.log({ token })
     const user = await fetchUserBackend({ token });
-
-    console.log({ user })
 
     const { page } = getAllowedPage({ path, userIsLogged: !!user }); // devuelve la pagina para ese path (si esta autorizada, si no, una pagina segura)
     const { path: newPath } = getPageValueFromPage({ page });
