@@ -1,10 +1,12 @@
 import { manageError } from '../tools';
+import { User } from '../types';
 
 const backendUrl = process.env.BACKEND_URL;
 const serverUrl = process.env.SERVER_URL;
 const cookiesPath = process.env.COOKIES_PATH;
 const cookiesBackendName = process.env.PORTAL_SUFIX;
 const backendDeleteSessionPath = process.env.BACKEND_CLOSE_AUTH_PATH;
+const appName = process.env.APP_NAME
 
 export async function registerUser({
   username,
@@ -73,22 +75,22 @@ export async function fetchUserBackend({
   token: string | null;
 }): Promise<Object | null> {
   try {
-    // if (!backendUrl || !backendUserPath) {
-    //   throw new Error('Problem finding global url');
-    // }
-    // const reliesOnCookies = !token;
-    // const response = await fetch(backendUrl + backendUserPath, {
-    //   credentials: 'include',
-    //   method: 'GET',
-    //   ...(reliesOnCookies
-    //     ? {}
-    //     : { headers: { Authorization: `Bearer ${token}` } }),
-    // });
-    // if (response.ok) {
-    //   const { data: user } = await response.json();
-    //   return user;
-    // }
-    // return null;
+    if (!backendUrl) {
+      throw new Error('Problem finding global url');
+    }
+    const reliesOnCookies = !token;
+    const response = await fetch(backendUrl + 'users/', {
+      credentials: 'include',
+      method: 'GET',
+      ...(reliesOnCookies
+        ? {}
+        : { headers: { Authorization: `Bearer ${token}` } }),
+    });
+    if (response.ok) {
+      const { data: user } = await response.json();
+      return user;
+    }
+    return null;
   } catch (e) {
     manageError({ error: e });
     return null;
@@ -118,12 +120,10 @@ export async function setCookieServer({
       if (response.ok) return true;
       return false;
     }
-    // cuando no es produccion, creamos cookies con sameSite: 'none', para que mande la cookie al apiGateway en desarrollo
-    // tb secure=false (para que se pueda mandar entre los localhosts, que son http y no https)
-    // y al ser el browser, no se puede establecer httpOnly (si puede ser modificada con js), por lo que es httpOnly = false
+    // when its not production, we put the token in the localstorage
     else {
       if (!token) throw new Error('Problem setting cookie for development');
-      document.cookie = `${cookiesBackendName}=${token}; secure=false; samesite=none`;
+      if (appName) localStorage.setItem(appName, token)
       return true;
     }
   } catch (e) {
@@ -132,11 +132,16 @@ export async function setCookieServer({
   }
 }
 
-export async function deleteCookie(): Promise<{ success: boolean }> {
+export async function deleteCookie({ user }: { user: User }): Promise<{ success: boolean }> {
   try {
-    await deleteBackendCookie();
+    if (process.env.NODE_ENV === 'production') {
+    await deleteBackendCookie({ user });
     await deleteServerCookie();
     return { success: true };
+    } else {
+      if (appName) localStorage.removeItem(appName)
+      return { success: true }
+    }
   } catch (e) {
     return { success: false };
   }
@@ -157,12 +162,13 @@ export async function deleteServerCookie(): Promise<boolean> {
   }
 }
 
-export async function deleteBackendCookie(): Promise<{ success: boolean }> {
+export async function deleteBackendCookie({ user }: { user: User }): Promise<{ success: boolean }> {
   try {
-    if (!backendUrl || !backendAuthPath)
+    if (!backendUrl || !user?.id) {
       throw new Error('Problem finding global url');
-    const response = await fetch(backendUrl + backendDeleteSessionPath, {
-      method: 'POST',
+    }
+    const response = await fetch(backendUrl + '/users/' + user.id, {
+      method: 'DELETE',
       credentials: 'include',
     });
 

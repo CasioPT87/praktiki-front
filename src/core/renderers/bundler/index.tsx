@@ -41,16 +41,10 @@ if (process.env.NODE_ENV === "production") {
   );
 } else {
   (async function createFrontComponentsDev() {
-    let user = null;
-
     const store = setUpStore();
-    const urlParams = new URLSearchParams(window.location.search);
-    const token = urlParams.get("token");
-    if (token) {
-      user = await fetchUserBackend({ token });
-    }
-
-    if (!user) user = await fetchUserBackend({ token: null });
+    const localstorageToken = localStorage.getItem(process.env.APP_NAME || '');
+    const token = localstorageToken || null
+    const user = await fetchUserBackend({ token });
 
     const { page } = getAllowedPage({ path, userIsLogged: !!user }); // devuelve la pagina para ese path (si esta autorizada, si no, una pagina segura)
     const { path: newPath } = getPageValueFromPage({ page });

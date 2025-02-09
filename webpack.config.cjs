@@ -74,6 +74,7 @@ const development = {
       "BACKEND_CLOSE_AUTH_PATH",
       "SERVER_URL",
       "PORTAL_SUFIX",
+      "APP_NAME"
     ]),
   ],
 };
@@ -110,6 +111,7 @@ const productionFrontBundle = {
       "BACKEND_CLOSE_AUTH_PATH",
       "SERVER_URL",
       "PORTAL_SUFIX", // no se usa en prod, pero hay que ponerlo para que el codigo no se rompa
+      "APP_NAME"
     ]),
   ],
 };

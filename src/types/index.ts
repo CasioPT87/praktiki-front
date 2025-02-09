@@ -33,6 +33,15 @@ type Routes = {
 
 type PlainObject = { [key: string]: unknown } & object;
 
+type User = {
+  id: number; // Primary key, auto-incrementing
+  name: string;
+  role_id: number; // Foreign key referencing 'role.id'
+  created_at: Date; // Timestamp for creation
+  updated_at: Date; // Timestamp for last update
+  deleted_at: Date | null; // Nullable timestamp for soft deletion
+};
+
 export {
   PageName,
   PageValue,
@@ -47,4 +56,5 @@ export {
   Store,
   PageComponent,
   PlainObject
+  User
 };

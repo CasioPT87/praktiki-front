@@ -7,13 +7,14 @@ import {
 } from '../../client-utils';
 import goTo from '../../core/router/utils/goTo';
 import '../../styles/index.scss';
+import { User } from '../../types';
 
 function Login({
   setUser,
   user,
 }: {
   setUser: React.Dispatch<React.SetStateAction<any>>;
-  user: Object | null;
+  user: User | null;
 }): React.JSX.Element {
   const [nameValue, setNameValue] = useState<string>('');
   const [passValue, setPassValue] = useState<string>('');
@@ -35,8 +36,10 @@ function Login({
   }
 
   async function signOut() {
-    const { success } = await deleteCookie();
-    if (success) await setUser(null);
+    if (user) {
+      const { success } = await deleteCookie({ user });
+      if (success) await setUser(null);
+    }
   }
 
   return (
