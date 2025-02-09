@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { jwtDecode, JwtPayload } from 'jwt-decode';
 import {
   loginUser,
   setCookieServer,
@@ -18,15 +19,18 @@ function Login({
   const [passValue, setPassValue] = useState<string>('');
 
   async function authenticate() {
-    const tokenResponse = await loginUser({
+    const response = await loginUser({
       username: nameValue,
       password: passValue,
     });
 
-    if (tokenResponse?.token) {
-        const user = { hola: 'que' }
+    const token = response?.token
+
+    if (token) {
+        const user = jwtDecode<JwtPayload>(token);
+
         setUser({ user });
-        await setCookieServer({ token: tokenResponse.token });
+        await setCookieServer({ token });
     }
   }
 

@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { jwtDecode, JwtPayload } from 'jwt-decode';
 import {
   setCookieServer,
   deleteCookie,
@@ -18,16 +19,17 @@ function Register({
   const [passValue, setPassValue] = useState<string>('');
 
   async function register() {
-    const tokenResponse = await registerUser({
+    const response = await registerUser({
       username: nameValue,
       password: passValue,
     });
 
-    if (tokenResponse?.token) {
-      if (user) {
+    const token = response?.token
+
+    if (token) {
+        const user = jwtDecode<JwtPayload>(token);
         setUser({ user });
-        await setCookieServer({ token: tokenResponse.token });
-      }
+        await setCookieServer({ token });
     }
   }
 

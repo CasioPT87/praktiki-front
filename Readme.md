@@ -1,16 +1,7 @@
-# geNext
-
-A new Front for a new apocalyptic World
+# Praktiki
 
 ## 🚀 Installation
 
-#### Clone repository
-
-```bash
-git clone ssh://git@10.20.150.6:222/GrupoImpultec/geNext.git
-```
-
-#### Go to folder
 
 ```bash
 cd geNext

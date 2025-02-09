@@ -14,8 +14,7 @@ export async function registerUser({
   password: string;
 }): Promise<{ token: string } | null> {
   try {
-    if (!backendUrl)
-      throw new Error('Problem finding global url');
+    if (!backendUrl) throw new Error('Problem finding global url');
     const response = await fetch(backendUrl + '/users/register', {
       method: 'POST',
       body: JSON.stringify({
@@ -45,19 +44,13 @@ export async function loginUser({
   password: string;
 }): Promise<{ token: string } | null> {
   try {
-    if (!backendUrl)
-      throw new Error('Problem finding global url');
-    const reliesOnCookies = username && password;
+    if (!backendUrl) throw new Error('Problem finding global url');
     const response = await fetch(backendUrl + '/users/login', {
       method: 'POST',
-      ...(reliesOnCookies
-        ? {
-            body: JSON.stringify({
-              username,
-              password,
-            }),
-          }
-        : {}),
+      body: JSON.stringify({
+        username,
+        password,
+      }),
       credentials: 'include',
       headers: {
         'Content-Type': 'application/json',
