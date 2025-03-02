@@ -37,6 +37,10 @@ const routes: Routes = {
     path: "/user/register",
     pageComponent: Register,
   },
+  locationChatRoom: {
+    path: "/location-chat/:id",
+    pageComponent: Register,
+  },
 };
 
 export default routes;

@@ -6,6 +6,7 @@ import {
   getAllowedPage,
   getPageNameFromPage,
   getPageValueFromPage,
+  getPageFromPath
 } from '../../tools';
 import { PageName } from '../../types';
 import { usePreloadData } from '../../hooks';
@@ -13,29 +14,34 @@ import { PreloadDataContext, MessagesSocketContext } from '../../contexts';
 import { fetchUserBackend, setCookieServer } from '../../client-utils';
 import { getMessagesManager } from '../messages';
 
-function usePageMonitor({
-  pageName: _pageName = 'home',
-}: {
+function usePageMonitor({ initialPath }: { initialPath: string }): {
   pageName: PageName;
-}): PageName {
-  const [pageName, setPage] = useState<PageName>(_pageName);
+  path: string;
+} {
+  const [pageName, setPage] = useState<PageName>(
+    getPageNameFromPage({ page: getPageFromPath({ path: initialPath }) }),
+  );
+  const [path, setPath] = useState<string>(initialPath);
   useEffect(() => {
-    function changePage({ detail }: { detail: { pageName: PageName } }) {
-      setPage(detail.pageName);
+    function changePage({ detail }: { detail: { path: string } }) {
+      const page = getPageFromPath({ path: detail.path });
+      const pageName = getPageNameFromPage({ page });
+      setPage(pageName);
+      setPath(detail.path);
     }
-    if (typeof document !== 'undefined') {
+    if (typeof document !== "undefined") {
       // @ts-ignore: Unreachable code error
-      window.addEventListener('changePage', changePage);
+      window.addEventListener("changePage", changePage);
     }
     return () => {
-      if (typeof document !== 'undefined')
+      if (typeof document !== "undefined") {
         // @ts-ignore: Unreachable code error
-        window.removeEventListener('changePage', changePage);
+        window.removeEventListener("changePage", changePage);
+      }
     };
   }, []);
-  return pageName;
+  return { pageName, path };
 }
-
 if (typeof document !== 'undefined') {
   window.addEventListener('popstate', function (event) {
     // FIX THIS!!
@@ -102,21 +108,29 @@ function Router({
   user,
   preloadData,
   setUser,
+  initialUrlPath,
 }: {
   initialPageName: PageName;
   user: Object | null;
   preloadData: any;
   setUser: React.Dispatch<React.SetStateAction<any>>;
+  initialUrlPath: string;
 }): React.JSX.Element | null {
-  const pageName = usePageMonitor({ pageName: initialPageName });
-  const page = routes[pageName];
-  const { page: allowedPage, needsRedirection } = getAllowedPage({
-    path: page.path,
+  const { pageName, path } = usePageMonitor({ initialPath: initialUrlPath });
+  const {
+    page: allowedPage,
+    needsRedirection,
+    urlParams,
+  } = getAllowedPage({
+    path,
     userIsLogged: !!user,
   });
+
   const allowedPageName: PageName = getPageNameFromPage({ page: allowedPage });
   const pageValue = getPageValueFromPage({ page: allowedPage });
   const component = pageValue.pageComponent;
+
+  // como cada vez que ejecutemos el "goTo" y cambiemos de pagina, este componente se vuelve a ejecutar, aqui tambien tenemos que correr el preloadFn
   const data = usePreloadData({
     component,
     preloadDataProp: preloadData,
@@ -125,9 +139,15 @@ function Router({
     goTo({ pageName: allowedPageName, redirect: true });
     return null;
   }
+
+  // en el return, englobamos el resultado en "PreloadDataContext" para poder usar useContext luego con los datos del "preloadFn"
   return (
     <PreloadDataContext.Provider value={data}>
-      <pageValue.pageComponent user={user} setUser={setUser} />
+      <pageValue.pageComponent
+        user={user}
+        setUser={setUser}
+        urlParams={urlParams}
+      />
     </PreloadDataContext.Provider>
   );
 }

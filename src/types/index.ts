@@ -9,7 +9,7 @@ import {
   AppThunkDispatch,
 } from './store';
 
-type PageName = 'home' | 'profile' | 'articles' | 'login' | 'messages' | 'conversation' | 'register';
+type PageName = 'home' | 'profile' | 'articles' | 'login' | 'messages' | 'conversation' | 'register' | 'locationChatRoom';
 
 type PageComponent = React.FC<any> & {
   preloadFn?: (token: string | null) => () => any;
@@ -72,6 +72,8 @@ export type ClientMessage = {
   message: string;
   type: "ERROR" | "WARNING" | "SUCCESS";
 };
+
+export type UrlParams = { path: string; params: { [key: string]: string } };
 
 
 export {

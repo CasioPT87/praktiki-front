@@ -47,7 +47,7 @@ const Home: React.FC<{ user: PlainObject | null }> = ({ user }) => {
   }, []);
 
   function goToChatRoom(locationChatId) {
-    console.log('vamos a sala', locationChatId)
+    goTo({ pageName: 'locationChatRoom', urlParams: { id: String(locationChatId) }})
   }
 
   if (localChats.length === 0) return null

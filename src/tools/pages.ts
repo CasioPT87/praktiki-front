@@ -1,15 +1,20 @@
 import routes from '../routes';
+import { match } from "path-to-regexp";
 import { isPrivateRoute } from '../routes/routeProtection';
-import { PageValue, Page, PageName, PageComponent } from '../types';
+import { PageValue, Page, PageName, PageComponent, UrlParams } from '../types';
 
-const getPageFromPath = ({ path }: { path: PageValue['path'] }): Page => {
-  const pageTuple = Object.entries(routes).find(([pageName, value]) => {
-    return value.path === path;
+const getPageFromPath = ({ path }: { path: PageValue["path"] }): Page => {
+  const pageTuple = Object.entries(routes).find(([, value]) => {
+    const matches = match(value.path)(path);
+    return !!matches;
   }) as [PageName, PageValue];
+
+  if (!pageTuple) {
+    return getPageFromPageName({ pageName: "home" }) as Page;
+  }
   const page = Object.fromEntries([pageTuple]) as Page;
   return page;
 };
-
 const getPageNameFromPage = ({ page }: { page: Page }): PageName => {
   const pageNameArray = Object.keys(page) as Array<PageName>;
   if (pageNameArray.length !== 1)
@@ -17,17 +22,32 @@ const getPageNameFromPage = ({ page }: { page: Page }): PageName => {
   return pageNameArray[0];
 };
 
+const getPageFromPageName = ({ pageName }: { pageName: PageName }): Page => {
+  const pageValue = routes[pageName];
+  const page = {
+    [pageName]: pageValue,
+  } as Page;
+  return page;
+};
+
 const getAllowedPage = ({
   path,
   userIsLogged,
 }: {
-  path: PageValue['path'];
+  path: PageValue["path"];
   userIsLogged: boolean;
-}): { page: Page; needsRedirection: boolean } => {
+}): { page: Page; needsRedirection: boolean; urlParams: UrlParams | null } => {
   if (isPrivateRoute({ path }) && !userIsLogged) {
-    return { page: getHomePage(), needsRedirection: true };
+    return { page: getHomePage(), needsRedirection: true, urlParams: null };
   } else {
-    return { page: getPageFromPath({ path }), needsRedirection: false };
+    const page = getPageFromPath({ path });
+    const pageValue = getPageValueFromPage({ page });
+    const urlParams = match(pageValue.path)(path) as UrlParams;
+    return {
+      page: getPageFromPath({ path }),
+      needsRedirection: false,
+      urlParams,
+    };
   }
 };
 
