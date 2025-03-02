@@ -42,6 +42,38 @@ type User = {
   deleted_at: Date | null; // Nullable timestamp for soft deletion
 };
 
+export type RequestOptions = {
+  headers?: HeadersInit;
+  queryParams?: Record<string, any>;
+  body?: Record<string, any>;
+  showHttpErrors?: boolean;
+};
+
+export type Method = "GET" | "POST" | "PUT" | "DELETE";
+
+export type ErrorData = {
+  message: string;
+  title: string;
+  type: "ALERT" | "WARNING" | "INFO";
+};
+
+export type ResponsePayload = object | string | number | any[] | CustomResponse;
+export type Payload = object | string | number | any[];
+
+export type CustomResponse = {
+  isCustomResponse: true;
+  status: 0 | 1;
+  message: string;
+  data: Payload;
+  errors: string[];
+};
+
+export type ClientMessage = {
+  message: string;
+  type: "ERROR" | "WARNING" | "SUCCESS";
+};
+
+
 export {
   PageName,
   PageValue,
@@ -55,6 +87,6 @@ export {
   Reducer,
   Store,
   PageComponent,
-  PlainObject
+  PlainObject,
   User
 };

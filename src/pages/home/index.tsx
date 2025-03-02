@@ -7,6 +7,22 @@ import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
 import { PlainObject } from '../../types';
 
+function calculateCenter(positions: Array<[number, number]>): [ number, number] {
+  if (!positions.length) return null;
+
+  let sumX = 0, sumY = 0;
+  
+  for (const pos of positions) {
+      sumX += pos[0];
+      sumY += pos[1];
+  }
+
+  return [
+      sumX / positions.length,
+      sumY / positions.length
+  ];
+}
+
 // Fix default icon issue for Leaflet
 delete L.Icon.Default.prototype._getIconUrl;
 L.Icon.Default.mergeOptions({
@@ -17,7 +33,8 @@ L.Icon.Default.mergeOptions({
 
 const Home: React.FC<{ user: PlainObject | null }> = ({ user }) => {
 
-  const position = [51.505, -0.09]; // Example coordinates
+  const positionMadrid = [40.4168, -3.7038]; // Example coordinates
+  const positionLondon = [51.5074, -0.1276]; // Example coordinates
 
   return (
     <div>
@@ -75,16 +92,21 @@ const Home: React.FC<{ user: PlainObject | null }> = ({ user }) => {
       <p id="logged">logged: {user ? 'true' : 'false'}</p>
 
       <MapContainer
-        center={position}
-        zoom={13}
-        scrollWheelZoom={false}
-        style={{ height: '100vh', width: '100%' }}
+        center={calculateCenter([positionMadrid, positionLondon])}
+        zoom={4}
+        scrollWheelZoom={true}
+        style={{ height: '50vh', width: '50%' }}
       >
         <TileLayer
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
         />
-        <Marker position={position}>
+        <Marker position={positionMadrid}>
+          <Popup>
+            A pretty CSS3 popup. <br /> Easily customizable.
+          </Popup>
+        </Marker>
+        <Marker position={positionLondon}>
           <Popup>
             A pretty CSS3 popup. <br /> Easily customizable.
           </Popup>

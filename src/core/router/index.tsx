@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import routes from '../../routes';
 import goTo from './utils/goTo';
-import { SocketIOClient } from 'socket.io-client';
+import SocketIOClient from 'socket.io-client';
 import {
   getAllowedPage,
   getPageNameFromPage,
@@ -58,7 +58,7 @@ interface AuthProps {
 }
 
 export const MessageConnector: React.FC<any> = ({ children }) => {
-  const [socket, setSocket] = useState<SocketIOClient | null>(null);
+  const [socket, setSocket] = useState<typeof SocketIOClient | null>(null);
   useEffect(() => {
     async function connect() {
       const socket = await getMessagesManager();
