@@ -1,26 +1,25 @@
 // @ts-nocheck
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
 import goTo from '../../core/router/utils/goTo';
 import '../../styles/index.scss';
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
 import { PlainObject } from '../../types';
+import HttpClient from '../../client-utils/httpClient';
 
-function calculateCenter(positions: Array<[number, number]>): [ number, number] {
+function calculateCenter(positions: Array<[number, number]>): [number, number] {
   if (!positions.length) return null;
 
-  let sumX = 0, sumY = 0;
-  
+  let sumX = 0,
+    sumY = 0;
+
   for (const pos of positions) {
-      sumX += pos[0];
-      sumY += pos[1];
+    sumX += pos[0];
+    sumY += pos[1];
   }
 
-  return [
-      sumX / positions.length,
-      sumY / positions.length
-  ];
+  return [sumX / positions.length, sumY / positions.length];
 }
 
 // Fix default icon issue for Leaflet
@@ -32,9 +31,26 @@ L.Icon.Default.mergeOptions({
 });
 
 const Home: React.FC<{ user: PlainObject | null }> = ({ user }) => {
+  const [localChats, setLocalChats] = useState([]);
 
   const positionMadrid = [40.4168, -3.7038]; // Example coordinates
   const positionLondon = [51.5074, -0.1276]; // Example coordinates
+
+  useEffect(() => {
+    async function getLocations() {
+      const response = await new HttpClient(process.env.BACKEND_URL).get(
+        '/locations'
+      );
+      if (response.ok) setLocalChats(response.data);
+    }
+    getLocations();
+  }, []);
+
+  function goToChatRoom(locationChatId) {
+    console.log('vamos a sala', locationChatId)
+  }
+
+  if (localChats.length === 0) return null
 
   return (
     <div>
@@ -55,36 +71,28 @@ const Home: React.FC<{ user: PlainObject | null }> = ({ user }) => {
       <button
         id="test-home-goto-messages"
         className="button-test"
-        onClick={() =>
-          goTo({ pageName: 'messages' })
-        }
+        onClick={() => goTo({ pageName: 'messages' })}
       >
         Go to Messages
       </button>
       <button
         id="test-home-goto-conversation"
         className="button-test"
-        onClick={() =>
-          goTo({ pageName: 'conversation' })
-        }
+        onClick={() => goTo({ pageName: 'conversation' })}
       >
         Go to Conversation
       </button>
       <button
         id="test-home-goto-login"
         className="button-test"
-        onClick={() =>
-          goTo({ pageName: 'login' })
-        }
+        onClick={() => goTo({ pageName: 'login' })}
       >
         Go to Login
       </button>
       <button
         id="test-home-goto-login"
         className="button-test"
-        onClick={() =>
-          goTo({ pageName: 'register'})
-        }
+        onClick={() => goTo({ pageName: 'register' })}
       >
         Go to Register
       </button>
@@ -101,16 +109,12 @@ const Home: React.FC<{ user: PlainObject | null }> = ({ user }) => {
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
         />
-        <Marker position={positionMadrid}>
-          <Popup>
-            A pretty CSS3 popup. <br /> Easily customizable.
-          </Popup>
-        </Marker>
-        <Marker position={positionLondon}>
-          <Popup>
-            A pretty CSS3 popup. <br /> Easily customizable.
-          </Popup>
-        </Marker>
+        {localChats.map((localChat) => (
+          <Marker
+            position={[localChat.y_coordinates, localChat.x_coordinates]}
+            eventHandlers={{ click: () => goToChatRoom(localChat.id) }}
+          ></Marker>
+        ))}
       </MapContainer>
     </div>
   );

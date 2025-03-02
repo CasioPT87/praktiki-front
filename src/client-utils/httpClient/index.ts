@@ -155,8 +155,8 @@ import {
     }
   
     static getToken(): string | null {
-      const tokenKey = process.env.PORTAL_SUFIX as string;
-      return process.env.IS_HTTPS === "false"
+      const tokenKey = process.env.APP_NAME as string;
+      return process.env.NODE_ENV === "development"
         ? localStorage.getItem(tokenKey)
         : null;
     }
