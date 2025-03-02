@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import routes from '../../routes';
 import goTo from './utils/goTo';
 import SocketIOClient from 'socket.io-client';
 import {
@@ -100,7 +99,7 @@ const Auth: React.FC<AuthProps> = ({ initialUser, children }: AuthProps) => {
       if (token) authenticateWithUrlToken(token);
     }
   }, []);
-  return <>{children({ user, setUser })}</>;
+  return <MessageConnector>{children({ user, setUser })}</MessageConnector>;
 }
 
 function Router({
