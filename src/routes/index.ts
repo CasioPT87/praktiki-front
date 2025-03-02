@@ -6,6 +6,7 @@ import Articles from "../pages/articles";
 import Messages from '../pages/messages'
 import Conversation from "../pages/conversation.tsx";
 import Register from "../pages/register";
+import ChatRoom from "../pages/localChatRoom";
 
 const routes: Routes = {
   home: {
@@ -39,7 +40,7 @@ const routes: Routes = {
   },
   locationChatRoom: {
     path: "/location-chat/:id",
-    pageComponent: Register,
+    pageComponent: ChatRoom,
   },
 };
 

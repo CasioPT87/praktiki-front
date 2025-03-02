@@ -1,16 +1,27 @@
 // src/ChatRoom.tsx
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import axios from 'axios';
+import { UrlParams, User } from '../../types';
+import HttpClient from '../../client-utils/httpClient';
+import { MessagesSocketContext } from '../../contexts';
 
 // Define types for the message structure
 interface Message {
   content: string;
 }
 
-const ChatRoom: React.FC = () => {
-  // State to store messages and new message input
+const ChatRoom: React.FC<{ user: User, urlParams: UrlParams }> = ({ urlParams }) => {
+  const locationRoomId = urlParams.params.id
+
+  const [joinedRoom, setJoinedRoom] = useState<Boolean>(false);
   const [messages, setMessages] = useState<Message[]>([]);
   const [newMessage, setNewMessage] = useState<string>('');
+
+  const { socket } = useContext(MessagesSocketContext)
+
+  useEffect(() => {
+    joinRoom()
+  }, [])
 
   // Fetch messages from the backend when the component mounts
   useEffect(() => {
@@ -25,6 +36,11 @@ const ChatRoom: React.FC = () => {
 
     fetchMessages();
   }, []);
+
+  async function joinRoom() {
+    const response = await new HttpClient(process.env.BACKEND_URL).get(`/room/join/${locationRoomId}`)
+    if (response.ok) setJoinedRoom(true)
+  }
 
   // Function to handle sending a new message
   const sendMessage = async () => {
@@ -46,6 +62,10 @@ const ChatRoom: React.FC = () => {
       console.error('Error sending message:', error);
     }
   };
+
+  if (!joinedRoom) return 'waiting'
+
+  return 'room joined!!'
 
   return (
     <div className="chat-container">
