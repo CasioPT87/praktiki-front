@@ -11,12 +11,12 @@ import {
   getInitialRenderData,
   getPageValueFromPage,
 } from "../../../tools";
-import { fetchUserBackend } from "../../../client-utils";
+import { fetchUserBackend, setCookieServer } from "../../../client-utils";
 import { setUpStore } from "../../../store";
 import { createMarkup } from "../utils";
 
 const domNode = document.getElementById("app") as Element;
-const { pathname: path } = window.location;
+const { pathname: urlPath } = window.location;
 
 if (process.env.NODE_ENV === "production") {
   const store = setUpStore(window.__PRELOADED_STATE__);
@@ -28,7 +28,7 @@ if (process.env.NODE_ENV === "production") {
   delete window.__PRELOADED_DATA__;
   delete window.__PRELOADED_USER__;
 
-  const { page } = getAllowedPage({ path, userIsLogged: !!user });
+  const { page } = getAllowedPage({ path: urlPath, userIsLogged: !!user });
 
   hydrateRoot(
     domNode,
@@ -37,19 +37,36 @@ if (process.env.NODE_ENV === "production") {
       store,
       user,
       preloadData,
+      initialUrlPath: urlPath,
     }),
   );
 } else {
   (async function createFrontComponentsDev() {
+    let user: Record<string, any> | null = null;
+
     const store = setUpStore();
-    const localstorageToken = localStorage.getItem(process.env.APP_NAME || '');
-    const token = localstorageToken || null
-    const user = await fetchUserBackend({ token });
+    const urlParams = new URLSearchParams(window.location.search);
+    const urlToken = urlParams.get("token");
+    const localStorageKey = process.env.PORTAL_SUFIX as string;
+    const localStorageToken = localStorage.getItem(localStorageKey);
+    if (urlToken || localStorageToken) {
+      const token = urlToken || localStorageToken;
+      user = await fetchUserBackend({ token });
+      if (token) setCookieServer({ token });
+    }
 
-    const { page } = getAllowedPage({ path, userIsLogged: !!user }); // devuelve la pagina para ese path (si esta autorizada, si no, una pagina segura)
-    const { path: newPath } = getPageValueFromPage({ page });
+    if (!user) user = await fetchUserBackend({ token: null });
 
-    if (newPath !== path) window.location.href = newPath;
+    const { page, needsRedirection } = getAllowedPage({
+      path: urlPath,
+      userIsLogged: !!user,
+    }); // devuelve la pagina para ese path (si esta autorizada, si no, una pagina segura)
+
+    if (needsRedirection) {
+      const { path: homePath } = getPageValueFromPage({ page });
+      window.location.href = homePath;
+      return;
+    }
 
     getInitialRenderData({ page, token: null }).then((preloadData) => {
       const root = createRoot(domNode);
@@ -60,6 +77,7 @@ if (process.env.NODE_ENV === "production") {
           store,
           user,
           preloadData,
+          initialUrlPath: urlPath,
         }),
       );
     });

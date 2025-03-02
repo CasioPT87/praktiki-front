@@ -12,6 +12,7 @@ const development = {
   entry: "./src/core/renderers/bundler/index.tsx",
   output: {
     filename: "bundle.js",
+    publicPath: "/",
     path: path.resolve(__dirname, "src/dist/dev"), // esta config de webpack la corre webpack-dev-server, que no escribe en disco. Por eso no se va a encontrar en archivo en esta localizacion
   },
   devServer: {

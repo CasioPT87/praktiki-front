@@ -9,24 +9,25 @@ const createMarkup = ({
   store,
   user,
   preloadData,
+  initialUrlPath,
 }: {
   page: Page;
   store: Store;
-  user: Object | null;
+  user: object | null;
   preloadData: any;
+  initialUrlPath: string;
 }): React.JSX.Element => {
   return (
     <Provider store={store}>
       <Auth initialUser={user}>
         {({ user: _user, setUser }) => (
-          <MessageConnector>
-            <Router
-              initialPageName={getPageNameFromPage({ page })}
-              user={_user}
-              preloadData={preloadData}
-              setUser={setUser}
-            />
-          </MessageConnector>
+          <Router
+            initialPageName={getPageNameFromPage({ page })}
+            initialUrlPath={initialUrlPath}
+            user={_user}
+            preloadData={preloadData}
+            setUser={setUser}
+          />
         )}
       </Auth>
     </Provider>
