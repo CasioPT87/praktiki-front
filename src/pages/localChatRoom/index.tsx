@@ -1,45 +1,48 @@
 // src/ChatRoom.tsx
 import React, { useState, useEffect, useContext } from 'react';
-import axios from 'axios';
 import { UrlParams, User } from '../../types';
-import HttpClient from '../../client-utils/httpClient';
 import { MessagesSocketContext } from '../../contexts';
 
 // Define types for the message structure
 interface Message {
   content: string;
+  created: Date;
 }
 
 const ChatRoom: React.FC<{ user: User, urlParams: UrlParams }> = ({ urlParams }) => {
-  const locationRoomId = urlParams.params.id
+  const locationChatId = urlParams.params.id
 
-  const [joinedRoom, setJoinedRoom] = useState<Boolean>(false);
+  const [hasJoinedRoom, setHasJoinedRoom] = useState<Boolean>(false);
   const [messages, setMessages] = useState<Message[]>([]);
   const [newMessage, setNewMessage] = useState<string>('');
 
-  const { socket } = useContext(MessagesSocketContext)
+  const socket = useContext(MessagesSocketContext)
 
   useEffect(() => {
-    joinRoom()
-  }, [])
+    if (socket) joinRoom()
+  }, [socket])
 
-  // Fetch messages from the backend when the component mounts
-  useEffect(() => {
-    const fetchMessages = async () => {
-      try {
-        const response = await axios.get<Message[]>('http://localhost:5000/messages');
-        setMessages(response.data);
-      } catch (error) {
-        console.error('Error fetching messages:', error);
-      }
-    };
+  // // Fetch messages from the backend when the component mounts
+  // useEffect(() => {
+  //   const fetchMessages = async () => {
+  //     try {
+  //       const response = await axios.get<Message[]>('http://localhost:5000/messages');
+  //       setMessages(response.data);
+  //     } catch (error) {
+  //       console.error('Error fetching messages:', error);
+  //     }
+  //   };
 
-    fetchMessages();
-  }, []);
+  //   //fetchMessages();
+  // }, []);
 
   async function joinRoom() {
-    const response = await new HttpClient(process.env.BACKEND_URL).get(`/room/join/${locationRoomId}`)
-    if (response.ok) setJoinedRoom(true)
+    socket.emit("joinLocationChat", { locationChatId })
+    setHasJoinedRoom(true)
+    socket.on("receiveMessageFromLocationChat", (message: { content: string, created: Date }) => {
+        console.log(message)
+        setMessages(messages => [...messages, message])
+    });
   }
 
   // Function to handle sending a new message
@@ -48,13 +51,13 @@ const ChatRoom: React.FC<{ user: User, urlParams: UrlParams }> = ({ urlParams })
 
     try {
       // Send the new message to the backend
-      await axios.post('http://localhost:5000/messages', {
-        content: newMessage,
+      await socket.emit("sendMessageToLocationChat", {
+        locationChatId,
+        message: {
+          content: newMessage,
+          created: Date.now()
+        }
       });
-
-      // Fetch updated messages from the backend
-      const response = await axios.get<Message[]>('http://localhost:5000/messages');
-      setMessages(response.data);
 
       // Clear the input field after sending the message
       setNewMessage('');
@@ -63,9 +66,7 @@ const ChatRoom: React.FC<{ user: User, urlParams: UrlParams }> = ({ urlParams })
     }
   };
 
-  if (!joinedRoom) return 'waiting'
-
-  return 'room joined!!'
+  if (!hasJoinedRoom) return 'waiting'
 
   return (
     <div className="chat-container">
@@ -79,7 +80,7 @@ const ChatRoom: React.FC<{ user: User, urlParams: UrlParams }> = ({ urlParams })
 
       <textarea
         value={newMessage}
-        onChange={(e) => setNewMessage(e.target.value)}
+        onChange={(e) => setNewMessage(e.currentTarget.value)}
         placeholder="Type your message..."
       />
 
