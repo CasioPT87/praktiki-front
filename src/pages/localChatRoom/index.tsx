@@ -43,18 +43,10 @@ const ChatRoom: React.FC<{ user: User; urlParams: UrlParams }> = ({
     socket.on(
       'receiveMessageFromLocationChat',
       (message: { content: string; created: Date }) => {
-        console.log(message);
         setMessages((messages) => [...messages, message]);
       }
     );
 
-    socket.on(
-      'receiveMessageFromLocationChat',
-      (message: { content: string; created: Date }) => {
-        console.log(message);
-        setMessages((messages) => [...messages, message]);
-      }
-    );
     const prevMsgsParsed = prevMessages.map(({ content, created }) => ({ content: content.text, created }))
     setMessages(prevMsgsParsed)
     setHasJoinedRoom(true);
