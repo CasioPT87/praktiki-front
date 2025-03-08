@@ -30,6 +30,11 @@ const getPageFromPageName = ({ pageName }: { pageName: PageName }): Page => {
   return page;
 };
 
+const pageDoesNotNeedUser = ({ page }: { page: Page }) => {
+  const pageName = getPageNameFromPage({ page })
+  return ['login', 'register'].includes(pageName) 
+}
+
 const getAllowedPage = ({
   path,
   userIsLogged,
@@ -90,4 +95,5 @@ export {
   getAllowedPage,
   getPageNameFromPage,
   getPageValueFromPage,
+  pageDoesNotNeedUser
 };

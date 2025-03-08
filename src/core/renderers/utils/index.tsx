@@ -2,7 +2,6 @@ import React from 'react';
 import { Provider } from 'react-redux';
 import { Router, Auth, MessageConnector } from '../../router';
 import { Page, Store } from '../../../types';
-import { getPageNameFromPage } from '../../../tools';
 
 const createMarkup = ({
   page,
@@ -19,10 +18,9 @@ const createMarkup = ({
 }): React.JSX.Element => {
   return (
     <Provider store={store}>
-      <Auth initialUser={user}>
+      <Auth initialUser={user} page={page}>
         {({ user: _user, setUser }) => (
           <Router
-            initialPageName={getPageNameFromPage({ page })}
             initialUrlPath={initialUrlPath}
             user={_user}
             preloadData={preloadData}

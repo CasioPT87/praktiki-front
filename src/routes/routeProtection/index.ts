@@ -7,7 +7,7 @@ interface ProtectedPaths {
 
 const protectedPaths: ProtectedPaths = {
   regExps: [new RegExp('/forbidden')],
-  paths: ['/articles'],
+  paths: ['/location-chat'],
 };
 
 const isPrivateRoute = ({ path }: { path: PageValue['path'] }): boolean => {

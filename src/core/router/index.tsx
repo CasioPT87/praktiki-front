@@ -5,20 +5,23 @@ import {
   getAllowedPage,
   getPageNameFromPage,
   getPageValueFromPage,
-  getPageFromPath
+  getPageFromPath,
 } from '../../tools';
-import { PageName } from '../../types';
+import { Page, PageName } from '../../types';
 import { usePreloadData } from '../../hooks';
 import { PreloadDataContext, MessagesSocketContext } from '../../contexts';
-import { fetchUserBackend, setCookieServer } from '../../client-utils';
+import { fetchUserBackend, loginAsGuest, setCookieServer } from '../../client-utils';
 import { getMessagesManager } from '../messages';
+import Modal from '../../components/modal';
+import Button from '../../components/button';
+import { pageDoesNotNeedUser } from '../../tools/pages';
 
 function usePageMonitor({ initialPath }: { initialPath: string }): {
   pageName: PageName;
   path: string;
 } {
   const [pageName, setPage] = useState<PageName>(
-    getPageNameFromPage({ page: getPageFromPath({ path: initialPath }) }),
+    getPageNameFromPage({ page: getPageFromPath({ path: initialPath }) })
   );
   const [path, setPath] = useState<string>(initialPath);
   useEffect(() => {
@@ -28,14 +31,14 @@ function usePageMonitor({ initialPath }: { initialPath: string }): {
       setPage(pageName);
       setPath(detail.path);
     }
-    if (typeof document !== "undefined") {
+    if (typeof document !== 'undefined') {
       // @ts-ignore: Unreachable code error
-      window.addEventListener("changePage", changePage);
+      window.addEventListener('changePage', changePage);
     }
     return () => {
-      if (typeof document !== "undefined") {
+      if (typeof document !== 'undefined') {
         // @ts-ignore: Unreachable code error
-        window.removeEventListener("changePage", changePage);
+        window.removeEventListener('changePage', changePage);
       }
     };
   }, []);
@@ -56,6 +59,7 @@ if (typeof document !== 'undefined') {
 
 interface AuthProps {
   initialUser: Object | null;
+  page: Page;
   children: (props: {
     user: any;
     setUser: React.Dispatch<React.SetStateAction<any>>;
@@ -73,15 +77,13 @@ export const MessageConnector: React.FC<any> = ({ children }) => {
   }, []);
 
   return (
-    <MessagesSocketContext.Provider
-      value={socket}
-    >
+    <MessagesSocketContext.Provider value={socket}>
       {children}
     </MessagesSocketContext.Provider>
   );
 };
 
-const Auth: React.FC<AuthProps> = ({ initialUser, children }: AuthProps) => {
+const Auth: React.FC<AuthProps> = ({ initialUser, children, page }: AuthProps) => {
   const [user, setUser] = useState<Object | null>(initialUser);
 
   useEffect(() => {
@@ -91,7 +93,7 @@ const Auth: React.FC<AuthProps> = ({ initialUser, children }: AuthProps) => {
         const user = await fetchUserBackend({ token });
         if (user) {
           setUser({ user });
-          await setCookieServer({ token: token });
+          await setCookieServer({ token });
         }
       }
       const urlParams = new URLSearchParams(window.location.search);
@@ -99,23 +101,40 @@ const Auth: React.FC<AuthProps> = ({ initialUser, children }: AuthProps) => {
       if (token) authenticateWithUrlToken(token);
     }
   }, []);
-  return <MessageConnector>{children({ user, setUser })}</MessageConnector>;
-}
+  if (!user && !pageDoesNotNeedUser({ page })) {
+    return (
+      <>
+        <Modal initiallyOpen={true}>
+          <Button text="Login" onClick={() => goTo({ pageName: 'login', redirect: true, pushHistoryState: false })} />
+          <Button text="Create account" onClick={() => goTo({ pageName: 'register', redirect: true, pushHistoryState: false })} />
+          <Button text="Login as guest" onClick={async () => {
+            const user = await loginAsGuest()
+            setUser({ user });
+          }} />
+        </Modal>
+        <MessageConnector>{children({ user, setUser })}</MessageConnector>
+      </>
+    );
+  }
+  return (
+    <div>
+      <MessageConnector>{children({ user, setUser })}</MessageConnector>
+    </div>
+  );
+};
 
 function Router({
-  initialPageName,
   user,
   preloadData,
   setUser,
   initialUrlPath,
 }: {
-  initialPageName: PageName;
   user: Object | null;
   preloadData: any;
   setUser: React.Dispatch<React.SetStateAction<any>>;
   initialUrlPath: string;
 }): React.JSX.Element | null {
-  const { pageName, path } = usePageMonitor({ initialPath: initialUrlPath });
+  const { path } = usePageMonitor({ initialPath: initialUrlPath });
   const {
     page: allowedPage,
     needsRedirection,

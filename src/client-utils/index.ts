@@ -1,5 +1,6 @@
 import { manageError } from '../tools';
 import { User } from '../types';
+import HttpClient from './httpClient';
 
 const backendUrl = process.env.BACKEND_URL;
 const serverUrl = process.env.SERVER_URL;
@@ -181,5 +182,13 @@ export async function deleteBackendCookie({ user }: { user: User }): Promise<{ s
     }
 
     return { success: false };
+  }
+}
+
+export const loginAsGuest = async () => {
+  const response = await new HttpClient(process.env.BACKEND_URL).get('/users/register/guest')
+  if (response.ok) {
+    console.log(response.data.data)
+    return response.data?.data || null
   }
 }
