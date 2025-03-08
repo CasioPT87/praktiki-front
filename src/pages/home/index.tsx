@@ -39,7 +39,7 @@ const Home: React.FC<{ user: PlainObject | null }> = ({ user }) => {
   useEffect(() => {
     async function getLocations() {
       const response = await new HttpClient(process.env.BACKEND_URL).get(
-        '/locations'
+        '/location-chats'
       );
       if (response.ok) setLocalChats(response.data);
     }
@@ -51,36 +51,18 @@ const Home: React.FC<{ user: PlainObject | null }> = ({ user }) => {
   }
 
   if (localChats.length === 0) return null
+  console.log(localChats)
 
   return (
     <div>
-      <h1>Home Test Page</h1>
-      <h2>Hola soy el dashboard del nuevo front</h2>
-      <button
-        className="button-test"
-        onClick={() => goTo({ pageName: 'profile' })}
-      >
-        Go to Profile
-      </button>
-      <button
-        className="button-test"
-        onClick={() => goTo({ pageName: 'articles' })}
-      >
-        Go to Articles (is Private)
-      </button>
-      <button
-        id="test-home-goto-messages"
-        className="button-test"
-        onClick={() => goTo({ pageName: 'messages' })}
-      >
-        Go to Messages
-      </button>
+      <h1>Home</h1>
+
       <button
         id="test-home-goto-conversation"
         className="button-test"
         onClick={() => goTo({ pageName: 'conversation' })}
       >
-        Go to Conversation
+        Go to Video Conversation
       </button>
       <button
         id="test-home-goto-login"

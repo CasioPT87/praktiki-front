@@ -1,9 +1,6 @@
 import Home from "../pages/home";
-import Profile from "../pages/profile";
 import Login from "../pages/login";
 import { Routes } from "../types";
-import Articles from "../pages/articles";
-import Messages from '../pages/messages'
 import Conversation from "../pages/conversation.tsx";
 import Register from "../pages/register";
 import ChatRoom from "../pages/localChatRoom";
@@ -14,21 +11,9 @@ const routes: Routes = {
     pageComponent: Home,
     isHome: true,
   },
-  profile: {
-    path: "/profile",
-    pageComponent: Profile,
-  },
-  articles: {
-    path: "/articles",
-    pageComponent: Articles,
-  },
   login: {
     path: "/login",
     pageComponent: Login,
-  },
-  messages: {
-    path: "/messages",
-    pageComponent: Messages,
   },
   conversation: {
     path: "/conversation",

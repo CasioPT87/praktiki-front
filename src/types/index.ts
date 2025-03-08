@@ -9,7 +9,7 @@ import {
   AppThunkDispatch,
 } from './store';
 
-type PageName = 'home' | 'profile' | 'articles' | 'login' | 'messages' | 'conversation' | 'register' | 'locationChatRoom';
+type PageName = 'home' | 'login' | 'conversation' | 'register' | 'locationChatRoom';
 
 type PageComponent = React.FC<any> & {
   preloadFn?: (token: string | null) => () => any;
