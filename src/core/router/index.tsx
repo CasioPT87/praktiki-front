@@ -57,15 +57,6 @@ if (typeof document !== 'undefined') {
   });
 }
 
-interface AuthProps {
-  initialUser: Object | null;
-  page: Page;
-  children: (props: {
-    user: any;
-    setUser: React.Dispatch<React.SetStateAction<any>>;
-  }) => React.ReactNode;
-}
-
 export const MessageConnector: React.FC<any> = ({ children }) => {
   const [socket, setSocket] = useState<typeof SocketIOClient | null>(null);
   useEffect(() => {
@@ -82,6 +73,15 @@ export const MessageConnector: React.FC<any> = ({ children }) => {
     </MessagesSocketContext.Provider>
   );
 };
+
+interface AuthProps {
+  initialUser: Object | null;
+  page: Page;
+  children: (props: {
+    user: any;
+    setUser: React.Dispatch<React.SetStateAction<any>>;
+  }) => React.ReactNode;
+}
 
 const Auth: React.FC<AuthProps> = ({ initialUser, children, page }: AuthProps) => {
   const [user, setUser] = useState<Object | null>(initialUser);
@@ -112,7 +112,7 @@ const Auth: React.FC<AuthProps> = ({ initialUser, children, page }: AuthProps) =
             setUser({ user });
           }} />
         </Modal>
-        <MessageConnector>{children({ user, setUser })}</MessageConnector>
+        <>{children({ user, setUser })}</>
       </>
     );
   }
