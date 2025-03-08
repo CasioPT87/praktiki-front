@@ -9,18 +9,20 @@ interface Message {
   created: Date;
 }
 
-const ChatRoom: React.FC<{ user: User, urlParams: UrlParams }> = ({ urlParams }) => {
-  const locationChatId = urlParams.params.id
+const ChatRoom: React.FC<{ user: User; urlParams: UrlParams }> = ({
+  urlParams,
+}) => {
+  const locationChatId = urlParams.params.id;
 
   const [hasJoinedRoom, setHasJoinedRoom] = useState<Boolean>(false);
   const [messages, setMessages] = useState<Message[]>([]);
   const [newMessage, setNewMessage] = useState<string>('');
 
-  const socket = useContext(MessagesSocketContext)
+  const socket = useContext(MessagesSocketContext);
 
   useEffect(() => {
-    if (socket) joinRoom()
-  }, [socket])
+    if (socket) joinRoom();
+  }, [socket]);
 
   // // Fetch messages from the backend when the component mounts
   // useEffect(() => {
@@ -37,12 +39,25 @@ const ChatRoom: React.FC<{ user: User, urlParams: UrlParams }> = ({ urlParams })
   // }, []);
 
   async function joinRoom() {
-    socket.emit("joinLocationChat", { locationChatId })
-    setHasJoinedRoom(true)
-    socket.on("receiveMessageFromLocationChat", (message: { content: string, created: Date }) => {
-        console.log(message)
-        setMessages(messages => [...messages, message])
-    });
+    const prevMessages: Array<{ content: { text: string }, created: Date }> = await socket.emitWithAck('joinLocationChat', { locationChatId })
+    socket.on(
+      'receiveMessageFromLocationChat',
+      (message: { content: string; created: Date }) => {
+        console.log(message);
+        setMessages((messages) => [...messages, message]);
+      }
+    );
+
+    socket.on(
+      'receiveMessageFromLocationChat',
+      (message: { content: string; created: Date }) => {
+        console.log(message);
+        setMessages((messages) => [...messages, message]);
+      }
+    );
+    const prevMsgsParsed = prevMessages.map(({ content, created }) => ({ content: content.text, created }))
+    setMessages(prevMsgsParsed)
+    setHasJoinedRoom(true);
   }
 
   // Function to handle sending a new message
@@ -51,12 +66,12 @@ const ChatRoom: React.FC<{ user: User, urlParams: UrlParams }> = ({ urlParams })
 
     try {
       // Send the new message to the backend
-      await socket.emit("sendMessageToLocationChat", {
+      await socket.emit('sendMessageToLocationChat', {
         locationChatId,
         message: {
           content: newMessage,
-          created: Date.now()
-        }
+          created: Date.now(),
+        },
       });
 
       // Clear the input field after sending the message
@@ -66,7 +81,7 @@ const ChatRoom: React.FC<{ user: User, urlParams: UrlParams }> = ({ urlParams })
     }
   };
 
-  if (!hasJoinedRoom) return 'waiting'
+  if (!hasJoinedRoom) return 'waiting';
 
   return (
     <div className="chat-container">
