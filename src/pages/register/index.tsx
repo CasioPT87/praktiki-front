@@ -2,10 +2,8 @@ import React, { useState } from 'react';
 import { jwtDecode, JwtPayload } from 'jwt-decode';
 import {
   setCookieServer,
-  deleteCookie,
   registerUser,
 } from '../../client-utils';
-import goTo from '../../core/router/utils/goTo';
 import '../../styles/index.scss';
 
 function Register({
