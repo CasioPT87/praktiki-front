@@ -49,6 +49,7 @@ if (process.env.NODE_ENV === "production") {
     const urlToken = urlParams.get("token");
     const localStorageKey = process.env.PORTAL_SUFIX as string;
     const localStorageToken = localStorage.getItem(localStorageKey);
+    console.log(localStorageKey, localStorageToken)
     if (urlToken || localStorageToken) {
       const token = urlToken || localStorageToken;
       user = await fetchUserBackend({ token });
@@ -56,6 +57,8 @@ if (process.env.NODE_ENV === "production") {
     }
 
     if (!user) user = await fetchUserBackend({ token: null });
+
+    console.log('fuera user', user)
 
     const { page, needsRedirection } = getAllowedPage({
       path: urlPath,

@@ -31,9 +31,6 @@ PORTAL_SUFIX=genei.es # this must be the same that it is in the backend server (
 COOKIES_PATH=/cookies
 
 APP_NAME=geNext
-
-USER_NAME=nombre_de_usuario
-USER_PASSWORD=password_de_usuario
 ```
 
 ## 🖥️ Run application

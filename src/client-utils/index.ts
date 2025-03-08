@@ -80,7 +80,7 @@ export async function fetchUserBackend({
       throw new Error('Problem finding global url');
     }
     const reliesOnCookies = !token;
-    const response = await fetch(backendUrl + '/users/profile', {
+    const response = await fetch(backendUrl + '/users/logged', {
       credentials: 'include',
       method: 'GET',
       ...(reliesOnCookies

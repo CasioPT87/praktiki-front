@@ -101,7 +101,6 @@ const Auth: React.FC<AuthProps> = ({ initialUser, children, page }: AuthProps) =
       if (token) authenticateWithUrlToken(token);
     }
   }, []);
-  console.log('!!!!', user)
   if (!user && !pageDoesNotNeedUser({ page })) {
     return (
       <>
