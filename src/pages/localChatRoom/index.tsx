@@ -9,6 +9,11 @@ interface Message {
   created: Date;
 }
 
+type UserConnected = {
+  name: string;
+  userId: number;
+};
+
 const ChatRoom: React.FC<{ user: User; urlParams: UrlParams }> = ({
   urlParams,
 }) => {
@@ -17,6 +22,9 @@ const ChatRoom: React.FC<{ user: User; urlParams: UrlParams }> = ({
   const [hasJoinedRoom, setHasJoinedRoom] = useState<Boolean>(false);
   const [messages, setMessages] = useState<Message[]>([]);
   const [newMessage, setNewMessage] = useState<string>('');
+  const [usersConnectedToRoom, setUsersConnectedToRoom] = useState<
+    UserConnected[]
+  >([]);
 
   const socket = useContext(MessagesSocketContext);
 
@@ -24,22 +32,9 @@ const ChatRoom: React.FC<{ user: User; urlParams: UrlParams }> = ({
     if (socket) joinRoom();
   }, [socket]);
 
-  // // Fetch messages from the backend when the component mounts
-  // useEffect(() => {
-  //   const fetchMessages = async () => {
-  //     try {
-  //       const response = await axios.get<Message[]>('http://localhost:5000/messages');
-  //       setMessages(response.data);
-  //     } catch (error) {
-  //       console.error('Error fetching messages:', error);
-  //     }
-  //   };
-
-  //   //fetchMessages();
-  // }, []);
-
   async function joinRoom() {
-    const prevMessages: Array<{ content: { text: string }, created: Date }> = await socket.emitWithAck('joinLocationChat', { locationChatId })
+    const prevMessages: Array<{ content: { text: string }; created: Date }> =
+      await socket.emitWithAck('joinLocationChat', { locationChatId });
     socket.on(
       'receiveMessageFromLocationChat',
       (message: { content: string; created: Date }) => {
@@ -47,8 +42,11 @@ const ChatRoom: React.FC<{ user: User; urlParams: UrlParams }> = ({
       }
     );
 
-    const prevMsgsParsed = prevMessages.map(({ content, created }) => ({ content: content.text, created }))
-    setMessages(prevMsgsParsed)
+    const prevMsgsParsed = prevMessages.map(({ content, created }) => ({
+      content: content.text,
+      created,
+    }));
+    setMessages(prevMsgsParsed);
     setHasJoinedRoom(true);
   }
 
@@ -73,6 +71,13 @@ const ChatRoom: React.FC<{ user: User; urlParams: UrlParams }> = ({
     }
   };
 
+  if (socket) {
+    socket.on('usersConnectedToRoom', (usersConnected: UserConnected[]) => {
+      console.log(usersConnected)
+      setUsersConnectedToRoom(usersConnected);
+    });
+  }
+
   if (!hasJoinedRoom) return 'waiting';
 
   return (
@@ -92,6 +97,12 @@ const ChatRoom: React.FC<{ user: User; urlParams: UrlParams }> = ({
       />
 
       <button onClick={sendMessage}>Send</button>
+      <div>
+        users connected:
+        {usersConnectedToRoom.map(({ name, id }) => {
+          return <div>{name}</div>;
+        })}
+      </div>
     </div>
   );
 };
