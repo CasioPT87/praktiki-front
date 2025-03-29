@@ -2,6 +2,7 @@
 import React, { useState, useEffect, useContext } from 'react';
 import { UrlParams, User } from '../../types';
 import { MessagesSocketContext } from '../../contexts';
+import { Socket } from 'socket.io-client';
 
 // Define types for the message structure
 interface Message {
@@ -26,7 +27,8 @@ const ChatRoom: React.FC<{ user: User; urlParams: UrlParams }> = ({
     UserConnected[]
   >([]);
 
-  const socket = useContext(MessagesSocketContext);
+  const sockets = useContext(MessagesSocketContext);
+  const socket = sockets?.text || null as Socket | null
 
   useEffect(() => {
     if (socket) joinRoom();
@@ -99,7 +101,7 @@ const ChatRoom: React.FC<{ user: User; urlParams: UrlParams }> = ({
       <button onClick={sendMessage}>Send</button>
       <div>
         users connected:
-        {usersConnectedToRoom.map(({ name, id }) => {
+        {usersConnectedToRoom.map(({ name }) => {
           return <div>{name}</div>;
         })}
       </div>

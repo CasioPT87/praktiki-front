@@ -11,7 +11,7 @@ import { Page, PageName } from '../../types';
 import { usePreloadData } from '../../hooks';
 import { PreloadDataContext, MessagesSocketContext } from '../../contexts';
 import { fetchUserBackend, loginAsGuest, setCookieServer } from '../../client-utils';
-import { getMessagesManager } from '../messages';
+import { getTextMessagesManager, getVideoMessagesManager } from '../messages';
 import Modal from '../../components/modal';
 import Button from '../../components/button';
 import { pageDoesNotNeedUser } from '../../tools/pages';
@@ -58,17 +58,18 @@ if (typeof document !== 'undefined') {
 }
 
 export const MessageConnector: React.FC<any> = ({ children }) => {
-  const [socket, setSocket] = useState<typeof SocketIOClient | null>(null);
+  const [sockets, setSockets] = useState<{ text: typeof SocketIOClient, video: typeof SocketIOClient } | null>(null);
   useEffect(() => {
     async function connect() {
-      const socket = await getMessagesManager();
-      setSocket(socket);
+      const textSocket = await getTextMessagesManager();
+      const videoSocket = await getVideoMessagesManager();
+      setSockets({ video: videoSocket, text: textSocket });
     }
     connect();
   }, []);
 
   return (
-    <MessagesSocketContext.Provider value={socket}>
+    <MessagesSocketContext.Provider value={sockets}>
       {children}
     </MessagesSocketContext.Provider>
   );

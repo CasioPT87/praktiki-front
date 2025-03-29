@@ -2,13 +2,15 @@
 import React, { useState, useEffect, useContext, useRef } from 'react';
 import { ConversationManager } from '../../core/messages/video';
 import { MessagesSocketContext } from '../../contexts';
+import { Socket } from 'socket.io-client';
 
 const Conversation: React.FC<> = () => {
   const callElement = useRef(null);
   const localVideoElement = useRef(null);
   const remoteVideoElement = useRef(null);
 
-  const socket = useContext(MessagesSocketContext);
+  const sockets = useContext(MessagesSocketContext);
+  const socket = sockets?.video || null as Socket | null
   const [conversationManager, setConversationManager] =
     useState<ConversationManager>(null);
   const [offers, setOffers] = useState<any[]>([])
