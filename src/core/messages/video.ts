@@ -157,9 +157,9 @@ export class ConversationManager {
     if (!localStreamManager || !peerConnection || !socket) return;
     this.didIOffer = true;
     const offer: RTCSessionDescriptionInit | undefined =
-      await peerConnection.createOffer();
+      await peerConnection.createOffer();  // generates an SDP offer
     if (!offer) return;
-    peerConnection.setLocalDescription(offer); // esto dispara el evento 'icecandidate' que acabas de declarr arriba
+    peerConnection.setLocalDescription(offer); // triggers the ICE candidate gathering process (when creating an offer). Triggers the event (icecandidate) each time an icecandidate is found.
     socket.emit('newOffer', offer);
   }
 
@@ -169,7 +169,7 @@ export class ConversationManager {
     this.didIOffer = false
     peerConnection.setRemoteDescription(offerObj.offer);
     const answer = await peerConnection.createAnswer();
-    peerConnection.setLocalDescription(answer);
+    peerConnection.setLocalDescription(answer); 
     offerObj.answer = answer;
     // le mandamos el offerObj (con una answer que le hemos metido)
     // esperamos que nos devuelva los ice candidates
