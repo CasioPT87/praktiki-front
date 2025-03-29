@@ -1,3 +1,5 @@
+import { User } from "../../types";
+
 type ConversationStreamManagerType = 'local' | 'remote';
 type OfferObj = {
   offererUserName: string;
@@ -8,14 +10,22 @@ type OfferObj = {
   answererIceCandidates: RTCIceCandidateInit[];
 };
 
+class PrivateClassManager {}
+
 class ConversationStreamManager {
   videoElement: HTMLVideoElement | null = null;
   stream: MediaStream | null = null;
   type: ConversationStreamManagerType | null = null;
 
-  constructor({ videoElement, type }: { videoElement: HTMLVideoElement, type: ConversationStreamManagerType }) {
+  constructor({
+    videoElement,
+    type,
+  }: {
+    videoElement: HTMLVideoElement;
+    type: ConversationStreamManagerType;
+  }) {
     this.videoElement = videoElement;
-    this.type = type
+    this.type = type;
   }
 
   getStream() {
@@ -69,48 +79,66 @@ export class ConversationManager {
   userName: string | null = null;
   didIOffer: boolean = false;
   socket: any = null;
-  localVideoElement: HTMLVideoElement | null = null
-  remoteVideoElement: HTMLVideoElement | null = null
-  setOffers: React.Dispatch<React.SetStateAction<any[]>>
+  localVideoElement: HTMLVideoElement | null = null;
+  remoteVideoElement: HTMLVideoElement | null = null;
+  setOffers: React.Dispatch<React.SetStateAction<any[]>>;
 
-  constructor({ socket, userName, localVideoElement, remoteVideoElement, setOffers }: { socket: any; userName: string, localVideoElement: HTMLVideoElement, remoteVideoElement: HTMLVideoElement, setOffers: React.Dispatch<React.SetStateAction<any[]>> }) {
+  constructor({
+    socket,
+    userName,
+    localVideoElement,
+    remoteVideoElement,
+    setOffers,
+  }: {
+    socket: any;
+    userName: string;
+    localVideoElement: HTMLVideoElement;
+    remoteVideoElement: HTMLVideoElement;
+    setOffers: React.Dispatch<React.SetStateAction<any[]>>;
+  }) {
     this.socket = socket;
     this.userName = userName;
-    this.localVideoElement = localVideoElement
-    this.remoteVideoElement = remoteVideoElement
-    this.setOffers = setOffers
+    this.localVideoElement = localVideoElement;
+    this.remoteVideoElement = remoteVideoElement;
+    this.setOffers = setOffers;
   }
 
   init = async () => {
-    if (!this.localVideoElement || !this.remoteVideoElement) return
-    this.localStreamManager = new ConversationStreamManager({ type: 'local', videoElement: this.localVideoElement });
+    if (!this.localVideoElement || !this.remoteVideoElement) return;
+    this.localStreamManager = new ConversationStreamManager({
+      type: 'local',
+      videoElement: this.localVideoElement,
+    });
     this.remoteStreamManager = new ConversationStreamManager({
-      type: 'remote', videoElement: this.remoteVideoElement
+      type: 'remote',
+      videoElement: this.remoteVideoElement,
     });
     await this.localStreamManager.setStream();
     await this.remoteStreamManager.setStream();
     this.peerConnection = await createPeerConnection();
-    this.localStreamManager.addTracksToConnection({ peerConnection: this.peerConnection })
-    this.setSocketListeners()
-    this.setPeerConnectionListeners()
+    this.localStreamManager.addTracksToConnection({
+      peerConnection: this.peerConnection,
+    });
+    this.setSocketListeners();
+    this.setPeerConnectionListeners();
 
-    return this
-  }
+    return this;
+  };
 
   addOffer = (offer: OfferObj) => {
     this.offers = [...this.offers, offer];
-    this.setOffers((offers) => [...offers, offer])
-  }
+    this.setOffers((offers) => [...offers, offer]);
+  };
 
   establishOffers = (offers: OfferObj[]) => {
     this.offers = offers;
-    this.setOffers(offers)
-  }
+    this.setOffers(offers);
+  };
 
   setSocketListeners = () => {
     // esto pasa cuando cualquier usuario -menos nostros- crea una offer
     this.socket.on('newOfferAwaiting', (offer: OfferObj) => {
-      console.log('alguien ha hecho una oferta', offer)
+      console.log('alguien ha hecho una oferta', offer);
       this.addOffer(offer);
     });
     // cuando se conecta de primeras, se trae todas la ofertas del servidor
@@ -128,59 +156,62 @@ export class ConversationManager {
       if (this.peerConnection)
         this.peerConnection.setRemoteDescription(offerObj.answer);
     });
-  }
+  };
 
   setPeerConnectionListeners = () => {
     if (!this.peerConnection) return;
-    this.peerConnection.addEventListener('icecandidate', (RTCPeerConnectionIceEvent) => {
-      // disparado por peerConnection.setLocalDescription
-      if (RTCPeerConnectionIceEvent.candidate) {
-        this.socket.emit('sendIceCandidateToSignalingServer', {
-          iceCandidate: RTCPeerConnectionIceEvent.candidate,
-          iceUserName: this.userName,
-          didIOffer: this.didIOffer,
-        });
+    this.peerConnection.addEventListener(
+      'icecandidate',
+      (RTCPeerConnectionIceEvent) => {
+        // disparado por peerConnection.setLocalDescription
+        if (RTCPeerConnectionIceEvent.candidate) {
+          this.socket.emit('sendIceCandidateToSignalingServer', {
+            iceCandidate: RTCPeerConnectionIceEvent.candidate,
+            iceUserName: this.userName,
+            didIOffer: this.didIOffer,
+          });
+        }
       }
-    });
-
-    // triggered when the remote peer adds a track to the connection
-    this.peerConnection.addEventListener('track', RTCTrackEvent =>{
-      RTCTrackEvent.streams[0].getTracks().forEach(track=>{
-          if (!this?.remoteStreamManager?.stream) return
-          this.remoteStreamManager.stream.addTrack(track);
-      })
-  })
-  }
-
-  call = async () => {
-    const { socket, peerConnection, localStreamManager } = this;
-    if (!localStreamManager || !peerConnection || !socket) return;
-    this.didIOffer = true;
-    const offer: RTCSessionDescriptionInit | undefined =
-      await peerConnection.createOffer();  // generates an SDP offer
-    if (!offer) return;
-    peerConnection.setLocalDescription(offer); // triggers the ICE candidate gathering process (when creating an offer). Triggers the event (icecandidate) each time an icecandidate is found.
-    socket.emit('newOffer', offer);
-  }
-
-  answer = async ({ offerObj }: { offerObj: OfferObj }) => {
-    const { socket, peerConnection } = this;
-    if (!peerConnection || !socket) return;
-    this.didIOffer = false
-    peerConnection.setRemoteDescription(offerObj.offer);
-    const answer = await peerConnection.createAnswer();
-    peerConnection.setLocalDescription(answer); 
-    offerObj.answer = answer;
-    // le mandamos el offerObj (con una answer que le hemos metido)
-    // esperamos que nos devuelva los ice candidates
-    const offerIceCandidates: RTCIceCandidateInit[] = await socket.emitWithAck(
-      'newAnswer',
-      offerObj
     );
 
-    // le metemos los iceCandidates a la peerConnection
-    offerIceCandidates.forEach((c) => {
-      peerConnection.addIceCandidate(c);
+    // triggered when the remote peer adds a track to the connection
+    this.peerConnection.addEventListener('track', (RTCTrackEvent) => {
+      RTCTrackEvent.streams[0].getTracks().forEach((track) => {
+        if (!this?.remoteStreamManager?.stream) return;
+        this.remoteStreamManager.stream.addTrack(track);
+      });
     });
-  }
+  };
+
+  // call = async () => {
+  //   const { socket, peerConnection, localStreamManager } = this;
+  //   if (!localStreamManager || !peerConnection || !socket) return;
+  //   this.didIOffer = true;
+  //   const offer: RTCSessionDescriptionInit | undefined =
+  //     await peerConnection.createOffer();  // generates an SDP offer
+  //   if (!offer) return;
+  //   peerConnection.setLocalDescription(offer); // triggers the ICE candidate gathering process (when creating an offer). Triggers the event (icecandidate) each time an icecandidate is found.
+  //   socket.emit('newOffer', offer);
+  // }
+
+  // answer = async ({ offerObj }: { offerObj: OfferObj }) => {
+  //   const { socket, peerConnection } = this;
+  //   if (!peerConnection || !socket) return;
+  //   this.didIOffer = false
+  //   peerConnection.setRemoteDescription(offerObj.offer);
+  //   const answer = await peerConnection.createAnswer();
+  //   peerConnection.setLocalDescription(answer);
+  //   offerObj.answer = answer;
+  //   // le mandamos el offerObj (con una answer que le hemos metido)
+  //   // esperamos que nos devuelva los ice candidates
+  //   const offerIceCandidates: RTCIceCandidateInit[] = await socket.emitWithAck(
+  //     'newAnswer',
+  //     offerObj
+  //   );
+
+  //   // le metemos los iceCandidates a la peerConnection
+  //   offerIceCandidates.forEach((c) => {
+  //     peerConnection.addIceCandidate(c);
+  //   });
+  // }
 }

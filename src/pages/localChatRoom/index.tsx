@@ -15,7 +15,15 @@ type UserConnected = {
   userId: number;
 };
 
+const PrivateChatRequest: React.FC<{
+  privateChatId: string;
+  requestCreatorUserId: number;
+}> = ({ privateChatid, requestCreatorUserId }) => {
+  return <div style={{ border: '1px solid red' }}>{'peticion de chat de: ' + requestCreatorUserId}</div>
+};
+
 const ChatRoom: React.FC<{ user: User; urlParams: UrlParams }> = ({
+  user,
   urlParams,
 }) => {
   const locationChatId = urlParams.params.id;
@@ -26,18 +34,24 @@ const ChatRoom: React.FC<{ user: User; urlParams: UrlParams }> = ({
   const [usersConnectedToRoom, setUsersConnectedToRoom] = useState<
     UserConnected[]
   >([]);
+  const [privateChatRequests, setPrivateChatRequests] = useState<
+    { privateChatId: string; requestCreatorUserId: number }[]
+  >([]);
 
   const sockets = useContext(MessagesSocketContext);
-  const socket = sockets?.text || null as Socket | null
+  const locationChatSocket = sockets?.text || (null as Socket | null);
+  const privateChatSocket = sockets?.video || (null as Socket | null);
 
   useEffect(() => {
-    if (socket) joinRoom();
-  }, [socket]);
+    if (locationChatSocket) joinRoom();
+  }, [locationChatSocket]);
 
   async function joinRoom() {
     const prevMessages: Array<{ content: { text: string }; created: Date }> =
-      await socket.emitWithAck('joinLocationChat', { locationChatId });
-    socket.on(
+      await locationChatSocket.emitWithAck('joinLocationChat', {
+        locationChatId,
+      });
+    locationChatSocket.on(
       'receiveMessageFromLocationChat',
       (message: { content: string; created: Date }) => {
         setMessages((messages) => [...messages, message]);
@@ -58,7 +72,7 @@ const ChatRoom: React.FC<{ user: User; urlParams: UrlParams }> = ({
 
     try {
       // Send the new message to the backend
-      await socket.emit('sendMessageToLocationChat', {
+      await locationChatSocket.emit('sendMessageToLocationChat', {
         locationChatId,
         message: {
           content: newMessage,
@@ -73,11 +87,40 @@ const ChatRoom: React.FC<{ user: User; urlParams: UrlParams }> = ({
     }
   };
 
-  if (socket) {
-    socket.on('usersConnectedToRoom', (usersConnected: UserConnected[]) => {
-      console.log(usersConnected)
-      setUsersConnectedToRoom(usersConnected);
-    });
+  if (locationChatSocket) {
+    locationChatSocket.on(
+      'usersConnectedToRoom',
+      (usersConnected: UserConnected[]) => {
+        console.log(usersConnected);
+        setUsersConnectedToRoom(usersConnected);
+      }
+    );
+  }
+
+  if (privateChatSocket) {
+    privateChatSocket.on(
+      'private-chat:create',
+      ({
+        privateChatId,
+        requestCreatorUserId,
+      }: {
+        privateChatId: string;
+        requestCreatorUserId: number;
+      }) => {
+        setPrivateChatRequests((previous) => {
+          const exists = previous.some(req => req.privateChatId === privateChatId)
+          if (exists) return previous
+          return [
+          ...previous,
+          { privateChatId, requestCreatorUserId },
+        ]});
+      }
+    );
+  }
+
+  function requestPrivateChat(userId: User['id']) {
+    if (!privateChatSocket) return;
+    privateChatSocket.emit('private-chat:create', { targetUserId: userId });
   }
 
   if (!hasJoinedRoom) return 'waiting';
@@ -101,9 +144,21 @@ const ChatRoom: React.FC<{ user: User; urlParams: UrlParams }> = ({
       <button onClick={sendMessage}>Send</button>
       <div>
         users connected:
-        {usersConnectedToRoom.map(({ name }) => {
-          return <div>{name}</div>;
+        {usersConnectedToRoom.map(({ name, userId }) => {
+          return <div onClick={() => {
+            if (userId === user.data.id) return
+            requestPrivateChat(userId)
+          }}>{name}</div>;
         })}
+      </div>
+      <div>
+        privata requests:
+        {privateChatRequests.map(({ privateChatId, requestCreatorUserId }) => (
+          <PrivateChatRequest
+            privateChatId={privateChatId}
+            requestCreatorUserId={requestCreatorUserId}
+          />
+        ))}
       </div>
     </div>
   );
