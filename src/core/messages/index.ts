@@ -1,6 +1,3 @@
-const userName = 'user-' + Math.floor(Math.random() * 100000);
-const password = 'x';
-
 export const getMessagesManager = () => {
   if (typeof document !== 'undefined') {
     return import('socket.io-client')

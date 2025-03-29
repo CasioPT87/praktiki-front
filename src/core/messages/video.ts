@@ -71,6 +71,7 @@ export class ConversationManager {
   socket: any = null;
   localVideoElement: HTMLVideoElement | null = null
   remoteVideoElement: HTMLVideoElement | null = null
+  setOffers: React.Dispatch<React.SetStateAction<any[]>>
 
   constructor({ socket, userName, localVideoElement, remoteVideoElement, setOffers }: { socket: any; userName: string, localVideoElement: HTMLVideoElement, remoteVideoElement: HTMLVideoElement, setOffers: React.Dispatch<React.SetStateAction<any[]>> }) {
     this.socket = socket;
@@ -101,7 +102,7 @@ export class ConversationManager {
     this.setOffers((offers) => [...offers, offer])
   }
 
-  setOffers = (offers: OfferObj[]) => {
+  establishOffers = (offers: OfferObj[]) => {
     this.offers = offers;
     this.setOffers(offers)
   }
@@ -114,7 +115,7 @@ export class ConversationManager {
     });
     // cuando se conecta de primeras, se trae todas la ofertas del servidor
     this.socket.on('availableOffers', (offers: OfferObj[]) => {
-      this.setOffers(offers);
+      this.establishOffers(offers);
     });
     this.socket.on(
       'receivedIceCandidateFromServer',
@@ -131,20 +132,20 @@ export class ConversationManager {
 
   setPeerConnectionListeners = () => {
     if (!this.peerConnection) return;
-    this.peerConnection.addEventListener('icecandidate', (e) => {
+    this.peerConnection.addEventListener('icecandidate', (RTCPeerConnectionIceEvent) => {
       // disparado por peerConnection.setLocalDescription
-      if (e.candidate) {
+      if (RTCPeerConnectionIceEvent.candidate) {
         this.socket.emit('sendIceCandidateToSignalingServer', {
-          iceCandidate: e.candidate,
+          iceCandidate: RTCPeerConnectionIceEvent.candidate,
           iceUserName: this.userName,
           didIOffer: this.didIOffer,
         });
       }
     });
 
-    // esto pasa cuando la conexion del otro anade tracks? no se...
-    this.peerConnection.addEventListener('track', e =>{
-      e.streams[0].getTracks().forEach(track=>{
+    // triggered when the remote peer adds a track to the connection
+    this.peerConnection.addEventListener('track', RTCTrackEvent =>{
+      RTCTrackEvent.streams[0].getTracks().forEach(track=>{
           if (!this?.remoteStreamManager?.stream) return
           this.remoteStreamManager.stream.addTrack(track);
       })

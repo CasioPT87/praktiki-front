@@ -16,7 +16,6 @@ const Conversation: React.FC<> = () => {
   useEffect(() => {
     async function setUpConversationManager() {
       if (socket && localVideoElement.current && remoteVideoElement.current) {
-        console.log(socket.auth)
         const cm = await new ConversationManager({
           socket,
           userName: socket.auth.userName,
@@ -30,8 +29,6 @@ const Conversation: React.FC<> = () => {
     setUpConversationManager();
   }, [socket, localVideoElement, remoteVideoElement]);
 
-
-
   function call() {
     if (conversationManager) {
       conversationManager.call()
@@ -43,8 +40,6 @@ const Conversation: React.FC<> = () => {
       conversationManager.answer({ offerObj })
     }
   }
-
-  console.log('offers', conversationManager?.offers)
 
   return (
     <div>
