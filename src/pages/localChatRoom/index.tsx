@@ -3,6 +3,7 @@ import React, { useState, useEffect, useContext } from 'react';
 import { UrlParams, User } from '../../types';
 import { MessagesSocketContext } from '../../contexts';
 import { Socket } from 'socket.io-client';
+import { func } from 'prop-types';
 
 // Define types for the message structure
 interface Message {
@@ -34,23 +35,33 @@ const ChatRoom: React.FC<{ user: User; urlParams: UrlParams }> = ({
   const locationChatId = urlParams.params.id;
 
   const sockets = useContext(MessagesSocketContext);
+  const [hasJoinedChat, setHasJoinedChat] = useState<boolean>(false);
   const locationChatSocket = sockets?.text || (null as Socket | null);
   const privateChatSocket = sockets?.video || (null as Socket | null);
 
   useEffect(() => {
-    if (locationChatSocket) locationChatSocket.emit('joinLocationChat');
+    if (locationChatSocket) {
+      async function joinChat() {
+        const hasJoined = await locationChatSocket.emitWithAck(
+          'location-chat:join',
+          {
+            locationChatId,
+          }
+        );
+        setHasJoinedChat(hasJoined);
+      }
+      joinChat();
+    }
   }, [locationChatSocket]);
 
-  if (!locationChatSocket || !privateChatSocket) return 'waiting to connect';
+  if (!locationChatSocket || !privateChatSocket || !hasJoinedChat)
+    return 'waiting to connect';
 
   return (
     <div className="chat-container">
-      <Messages
-        locationChatSocket={locationChatSocket}
-      />
+      <Messages locationChatSocket={locationChatSocket} />
       <MessageTextArea
         locationChatSocket={locationChatSocket}
-        locationChatId={locationChatId}
       />
       <UsersConnected
         locationChatSocket={locationChatSocket}
@@ -68,16 +79,12 @@ const Messages: React.FC<{
   const [messages, setMessages] = useState<Message[]>([]);
 
   useEffect(() => {
-    locationChatSocket.on(
-      'receiveMessageFromLocationChat',
-      (message: Message) => {
-        setMessages((messages) => [...messages, message]);
-      }
-    );
+    locationChatSocket.on('location-chat-message:get', (message: Message) => {
+      setMessages((messages) => [...messages, message]);
+    });
     locationChatSocket.on(
       'location-chat-messages:get',
       (messages: Message[]) => {
-        console.log('mes', messages);
         setMessages(messages);
       }
     );
@@ -97,8 +104,7 @@ const Messages: React.FC<{
 
 const MessageTextArea: React.FC<{
   locationChatSocket: Socket;
-  locationChatId: string;
-}> = ({ locationChatSocket, locationChatId }) => {
+}> = ({ locationChatSocket }) => {
   const [newMessage, setNewMessage] = useState<string>('');
 
   const sendMessage = async () => {
@@ -106,8 +112,7 @@ const MessageTextArea: React.FC<{
 
     try {
       // Send the new message to the backend
-      await locationChatSocket.emit('sendMessageToLocationChat', {
-        locationChatId,
+      await locationChatSocket.emit('location-chat-message:create', {
         message: {
           content: newMessage,
           created: Date.now(),
@@ -144,12 +149,13 @@ const UsersConnected: React.FC<{
 
   useEffect(() => {
     locationChatSocket.on(
-      'usersConnectedToRoom',
+      'location-chat-users:get',
       (usersConnected: UserConnected[]) => {
-        console.log(usersConnected);
+        console.log('users connected', usersConnected);
         setUsersConnectedToRoom(usersConnected);
       }
     );
+    locationChatSocket.emit('location-chat-users:get');
   }, []);
 
   function requestPrivateChat(userId: User['id']) {
@@ -192,7 +198,6 @@ const ConversationRequestHub: React.FC<{ privateChatSocket: Socket }> = ({
         privateChatId: string;
         requestCreatorUserId: number;
       }) => {
-        console.log('killooooo');
         setPrivateChatRequests((previous) => {
           const exists = previous.some(
             (req) => req.privateChatId === privateChatId
