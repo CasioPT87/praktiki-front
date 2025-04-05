@@ -33,38 +33,19 @@ const ChatRoom: React.FC<{ user: User; urlParams: UrlParams }> = ({
 }) => {
   const locationChatId = urlParams.params.id;
 
-  const [hasJoinedRoom, setHasJoinedRoom] = useState<Boolean>(false);
-  const [initialMessages, setInitialMessages] = useState<Message[]>([]);
-
   const sockets = useContext(MessagesSocketContext);
   const locationChatSocket = sockets?.text || (null as Socket | null);
   const privateChatSocket = sockets?.video || (null as Socket | null);
 
   useEffect(() => {
-    if (locationChatSocket) joinRoom();
+    if (locationChatSocket) locationChatSocket.emit('joinLocationChat');
   }, [locationChatSocket]);
 
-  async function joinRoom() {
-    const prevMessages: Array<{ content: { text: string }; created: Date }> =
-      await locationChatSocket.emitWithAck('joinLocationChat', {
-        locationChatId,
-      });
-
-    const prevMsgsParsed = prevMessages.map(({ content, created }) => ({
-      content: content.text,
-      created,
-    }));
-    setInitialMessages(prevMsgsParsed);
-    setHasJoinedRoom(true);
-  }
-
-  if (!hasJoinedRoom || !locationChatSocket || !privateChatSocket)
-    return 'waiting to connect';
+  if (!locationChatSocket || !privateChatSocket) return 'waiting to connect';
 
   return (
     <div className="chat-container">
       <Messages
-        initialMessages={initialMessages}
         locationChatSocket={locationChatSocket}
       />
       <MessageTextArea
@@ -76,24 +57,31 @@ const ChatRoom: React.FC<{ user: User; urlParams: UrlParams }> = ({
         privateChatSocket={privateChatSocket}
         user={user}
       />
-      <ConversationRequestHub privateChatSocket={privateChatSocket} />
+      {/* <ConversationRequestHub privateChatSocket={privateChatSocket} /> */}
     </div>
   );
 };
 
 const Messages: React.FC<{
-  initialMessages: Message[];
   locationChatSocket: Socket;
-}> = ({ initialMessages, locationChatSocket }) => {
-  const [messages, setMessages] = useState<Message[]>(initialMessages);
+}> = ({ locationChatSocket }) => {
+  const [messages, setMessages] = useState<Message[]>([]);
 
   useEffect(() => {
     locationChatSocket.on(
       'receiveMessageFromLocationChat',
-      (message: { content: string; created: Date }) => {
+      (message: Message) => {
         setMessages((messages) => [...messages, message]);
       }
     );
+    locationChatSocket.on(
+      'location-chat-messages:get',
+      (messages: Message[]) => {
+        console.log('mes', messages);
+        setMessages(messages);
+      }
+    );
+    locationChatSocket.emit('location-chat-messages:get');
   }, []);
 
   return (
@@ -204,7 +192,7 @@ const ConversationRequestHub: React.FC<{ privateChatSocket: Socket }> = ({
         privateChatId: string;
         requestCreatorUserId: number;
       }) => {
-        console.log('killooooo')
+        console.log('killooooo');
         setPrivateChatRequests((previous) => {
           const exists = previous.some(
             (req) => req.privateChatId === privateChatId
