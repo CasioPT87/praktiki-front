@@ -10,8 +10,6 @@ type OfferObj = {
   answererIceCandidates: RTCIceCandidateInit[];
 };
 
-class PrivateClassManager {}
-
 class ConversationStreamManager {
   videoElement: HTMLVideoElement | null = null;
   stream: MediaStream | null = null;
@@ -87,19 +85,16 @@ export class ConversationManager {
     userName,
     localVideoElement,
     remoteVideoElement,
-    setOffers,
   }: {
     socket: any;
     userName: string;
     localVideoElement: HTMLVideoElement;
     remoteVideoElement: HTMLVideoElement;
-    setOffers: React.Dispatch<React.SetStateAction<any[]>>;
   }) {
     this.socket = socket;
     this.userName = userName;
     this.localVideoElement = localVideoElement;
     this.remoteVideoElement = remoteVideoElement;
-    this.setOffers = setOffers;
   }
 
   init = async () => {
@@ -124,26 +119,7 @@ export class ConversationManager {
     return this;
   };
 
-  addOffer = (offer: OfferObj) => {
-    this.offers = [...this.offers, offer];
-    this.setOffers((offers) => [...offers, offer]);
-  };
-
-  establishOffers = (offers: OfferObj[]) => {
-    this.offers = offers;
-    this.setOffers(offers);
-  };
-
   setSocketListeners = () => {
-    // esto pasa cuando cualquier usuario -menos nostros- crea una offer
-    this.socket.on('newOfferAwaiting', (offer: OfferObj) => {
-      console.log('alguien ha hecho una oferta', offer);
-      this.addOffer(offer);
-    });
-    // cuando se conecta de primeras, se trae todas la ofertas del servidor
-    this.socket.on('availableOffers', (offers: OfferObj[]) => {
-      this.establishOffers(offers);
-    });
     this.socket.on(
       'receivedIceCandidateFromServer',
       (iceCandidate: RTCIceCandidateInit) => {
