@@ -12,8 +12,8 @@ import { usePreloadData } from '../../hooks';
 import { PreloadDataContext, MessagesSocketContext } from '../../contexts';
 import { fetchUserBackend, loginAsGuest, setCookieServer } from '../../client-utils';
 import { getTextMessagesManager, getVideoMessagesManager } from '../messages';
-import Modal from '../../components/modal';
-import Button from '../../components/button';
+import Modal from '../../components/ui/modal';
+import Button from '../../components/ui/button';
 import { pageDoesNotNeedUser } from '../../tools/pages';
 
 function usePageMonitor({ initialPath }: { initialPath: string }): {

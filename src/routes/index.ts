@@ -1,7 +1,7 @@
 import Home from "../pages/home";
 import Login from "../pages/login";
 import { Routes } from "../types";
-import Conversation from "../pages/conversation";
+import VideoConversation from "../components/functional/videoConversation";
 import Register from "../pages/register";
 import ChatRoom from "../pages/localChatRoom";
 
@@ -14,10 +14,6 @@ const routes: Routes = {
   login: {
     path: "/login",
     pageComponent: Login,
-  },
-  conversation: {
-    path: "/conversation",
-    pageComponent: Conversation,
   },
   register: {
     path: "/user/register",

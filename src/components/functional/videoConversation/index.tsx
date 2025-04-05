@@ -1,10 +1,10 @@
 // @ts-nocheck
 import React, { useState, useEffect, useContext, useRef } from 'react';
-import { ConversationManager } from '../../core/messages/video';
-import { MessagesSocketContext } from '../../contexts';
+import { ConversationManager } from '../../../core/messages/video';
+import { MessagesSocketContext } from '../../../contexts';
 import { Socket } from 'socket.io-client';
 
-const Conversation: React.FC<> = () => {
+const VideoConversation: React.FC<> = () => {
   const callElement = useRef(null);
   const localVideoElement = useRef(null);
   const remoteVideoElement = useRef(null);
@@ -91,4 +91,4 @@ const Conversation: React.FC<> = () => {
   );
 };
 
-export default Conversation;
+export default VideoConversation;
