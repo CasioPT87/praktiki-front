@@ -1,7 +1,7 @@
 import Home from "../pages/home";
 import Login from "../pages/login";
 import { Routes } from "../types";
-import Conversation from "../pages/conversation.tsx";
+import Conversation from "../pages/conversation";
 import Register from "../pages/register";
 import ChatRoom from "../pages/localChatRoom";
 

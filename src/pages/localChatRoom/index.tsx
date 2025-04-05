@@ -18,8 +18,9 @@ type UserConnected = {
 const PrivateChatRequest: React.FC<{
   privateChatId: string;
   requestCreatorUserId: number;
-}> = ({ privateChatid, requestCreatorUserId }) => {
-  return <div style={{ border: '1px solid red' }}>{'peticion de chat de: ' + requestCreatorUserId}</div>
+  onClick: () => void
+}> = ({ requestCreatorUserId, onClick }) => {
+  return <div onClick={onClick} style={{ border: '1px solid red' }}>{'peticion de chat de: ' + requestCreatorUserId}</div>
 };
 
 const ChatRoom: React.FC<{ user: User; urlParams: UrlParams }> = ({
@@ -123,6 +124,11 @@ const ChatRoom: React.FC<{ user: User; urlParams: UrlParams }> = ({
     privateChatSocket.emit('private-chat:create', { targetUserId: userId });
   }
 
+  function acceptRequest({ privateChatId, requestCreatorUserId }: { privateChatId: string, requestCreatorUserId: number }) {
+
+    
+  }
+
   if (!hasJoinedRoom) return 'waiting';
 
   return (
@@ -157,6 +163,7 @@ const ChatRoom: React.FC<{ user: User; urlParams: UrlParams }> = ({
           <PrivateChatRequest
             privateChatId={privateChatId}
             requestCreatorUserId={requestCreatorUserId}
+            onClick={() => acceptRequest({ privateChatId, requestCreatorUserId })}
           />
         ))}
       </div>
