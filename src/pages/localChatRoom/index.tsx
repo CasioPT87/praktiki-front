@@ -68,7 +68,7 @@ const ChatRoom: React.FC<{ user: User; urlParams: UrlParams }> = ({
         privateChatSocket={privateChatSocket}
         user={user}
       />
-      {/* <ConversationRequestHub privateChatSocket={privateChatSocket} /> */}
+      <ConversationRequestHub privateChatSocket={privateChatSocket} />
     </div>
   );
 };
@@ -151,7 +151,6 @@ const UsersConnected: React.FC<{
     locationChatSocket.on(
       'location-chat-users:get',
       (usersConnected: UserConnected[]) => {
-        console.log('users connected', usersConnected);
         setUsersConnectedToRoom(usersConnected);
       }
     );
@@ -169,6 +168,7 @@ const UsersConnected: React.FC<{
       {usersConnectedToRoom.map(({ name, userId }) => {
         return (
           <div
+            key={userId}
             onClick={() => {
               if (userId === user.data.id) return;
               requestPrivateChat(userId);
@@ -222,6 +222,7 @@ const ConversationRequestHub: React.FC<{ privateChatSocket: Socket }> = ({
       privata requests:
       {privateChatRequests.map(({ privateChatId, requestCreatorUserId }) => (
         <PrivateChatRequestButton
+          key={privateChatId}
           privateChatId={privateChatId}
           requestCreatorUserId={requestCreatorUserId}
           onClick={() => acceptRequest({ privateChatId, requestCreatorUserId })}
