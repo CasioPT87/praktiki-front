@@ -21,6 +21,7 @@ const ConversationRequestHub: React.FC<{
       type: Mode;
       creator: boolean;
       target: boolean
+      privateChatId: string
     }>
   >;
 }> = ({ privateChatSocket, setMode }) => {
@@ -48,11 +49,12 @@ const ConversationRequestHub: React.FC<{
     );
     privateChatSocket.on(
       'private-chat:start',
-      ({ creator, target }: { creator: boolean; target: boolean }) => {
+      ({ creator, target, privateChatId }: { creator: boolean; target: boolean, privateChatId: string }) => {
         setMode({
           type: Mode.call,
           creator,
-          target
+          target,
+          privateChatId
         });
       }
     );

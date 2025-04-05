@@ -26,7 +26,8 @@ const ChatRoom: React.FC<{ user: User; urlParams: UrlParams }> = ({
     type: Mode;
     creator: boolean;
     target: boolean;
-  }>({ type: Mode.localChat, creator: false, target: false });
+    privateChatId: string;
+  }>({ type: Mode.localChat, creator: false, target: false, privateChatId: '' });
   const locationChatSocket = sockets?.text || (null as Socket | null);
   const privateChatSocket = sockets?.video || (null as Socket | null);
 

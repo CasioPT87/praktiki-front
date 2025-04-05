@@ -79,6 +79,8 @@ export class ConversationManager {
   socket: any = null;
   localVideoElement: HTMLVideoElement | null = null;
   remoteVideoElement: HTMLVideoElement | null = null;
+  isCreator: boolean = false
+  privateChatId: string | null = null
 
   constructor({
     socket,
@@ -97,8 +99,11 @@ export class ConversationManager {
     this.remoteVideoElement = remoteVideoElement;
   }
 
-  init = async () => {
+  init = async ({ creator, target, privateChatId }: { creator: boolean, target: boolean, privateChatId: string }) => {
     if (!this.localVideoElement || !this.remoteVideoElement) return;
+    if (!privateChatId) return 
+    this.privateChatId = privateChatId
+    this.isCreator = creator
     this.localStreamManager = new ConversationStreamManager({
       type: 'local',
       videoElement: this.localVideoElement,
@@ -158,35 +163,35 @@ export class ConversationManager {
     });
   };
 
-  // call = async () => {
-  //   const { socket, peerConnection, localStreamManager } = this;
-  //   if (!localStreamManager || !peerConnection || !socket) return;
-  //   this.didIOffer = true;
-  //   const offer: RTCSessionDescriptionInit | undefined =
-  //     await peerConnection.createOffer();  // generates an SDP offer
-  //   if (!offer) return;
-  //   peerConnection.setLocalDescription(offer); // triggers the ICE candidate gathering process (when creating an offer). Triggers the event (icecandidate) each time an icecandidate is found.
-  //   socket.emit('newOffer', offer);
-  // }
+  call = async () => {
+    const { socket, peerConnection, localStreamManager } = this;
+    if (!localStreamManager || !peerConnection || !socket) return;
+    this.didIOffer = true;
+    const offer: RTCSessionDescriptionInit | undefined =
+      await peerConnection.createOffer();  // generates an SDP offer
+    if (!offer) return;
+    peerConnection.setLocalDescription(offer); // triggers the ICE candidate gathering process (when creating an offer). Triggers the event (icecandidate) each time an icecandidate is found.
+    socket.emit('newOffer', offer);
+  }
 
-  // answer = async ({ offerObj }: { offerObj: OfferObj }) => {
-  //   const { socket, peerConnection } = this;
-  //   if (!peerConnection || !socket) return;
-  //   this.didIOffer = false
-  //   peerConnection.setRemoteDescription(offerObj.offer);
-  //   const answer = await peerConnection.createAnswer();
-  //   peerConnection.setLocalDescription(answer);
-  //   offerObj.answer = answer;
-  //   // le mandamos el offerObj (con una answer que le hemos metido)
-  //   // esperamos que nos devuelva los ice candidates
-  //   const offerIceCandidates: RTCIceCandidateInit[] = await socket.emitWithAck(
-  //     'newAnswer',
-  //     offerObj
-  //   );
+  answer = async ({ offerObj }: { offerObj: OfferObj }) => {
+    const { socket, peerConnection } = this;
+    if (!peerConnection || !socket) return;
+    this.didIOffer = false
+    peerConnection.setRemoteDescription(offerObj.offer);
+    const answer = await peerConnection.createAnswer();
+    peerConnection.setLocalDescription(answer);
+    offerObj.answer = answer;
+    // le mandamos el offerObj (con una answer que le hemos metido)
+    // esperamos que nos devuelva los ice candidates
+    const offerIceCandidates: RTCIceCandidateInit[] = await socket.emitWithAck(
+      'offer:accept',
+      offerObj
+    );
 
-  //   // le metemos los iceCandidates a la peerConnection
-  //   offerIceCandidates.forEach((c) => {
-  //     peerConnection.addIceCandidate(c);
-  //   });
-  // }
+    // le metemos los iceCandidates a la peerConnection
+    offerIceCandidates.forEach((c) => {
+      peerConnection.addIceCandidate(c);
+    });
+  }
 }

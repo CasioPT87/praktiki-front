@@ -5,7 +5,7 @@ import { MessagesSocketContext } from '../../../contexts';
 import { Socket } from 'socket.io-client';
 import { Mode } from '../../../pages/localChatRoom';
 
-const VideoConversation: React.FC<{ mode: { type: Mode, creator: boolean, target: boolean }}> = ({ mode }) => {
+const VideoConversation: React.FC<{ mode: { type: Mode, creator: boolean, target: boolean, privateChatId: string }}> = ({ mode }) => {
   const callElement = useRef(null);
   const localVideoElement = useRef(null);
   const remoteVideoElement = useRef(null);
@@ -23,7 +23,7 @@ const VideoConversation: React.FC<{ mode: { type: Mode, creator: boolean, target
           userName: socket.auth.userName,
           localVideoElement: localVideoElement.current,
           remoteVideoElement: remoteVideoElement.current,
-        }).init({ creator: mode.creator, target: mode.target });
+        }).init({ creator: mode.creator, target: mode.target, privateChatId: mode.privateChatId });
         setConversationManager(cm);
       }
     }
