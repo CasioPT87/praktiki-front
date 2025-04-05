@@ -204,6 +204,7 @@ const ConversationRequestHub: React.FC<{ privateChatSocket: Socket }> = ({
         privateChatId: string;
         requestCreatorUserId: number;
       }) => {
+        console.log('killooooo')
         setPrivateChatRequests((previous) => {
           const exists = previous.some(
             (req) => req.privateChatId === privateChatId
