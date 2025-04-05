@@ -3,8 +3,9 @@ import React, { useState, useEffect, useContext, useRef } from 'react';
 import { ConversationManager } from '../../../core/messages/video';
 import { MessagesSocketContext } from '../../../contexts';
 import { Socket } from 'socket.io-client';
+import { Mode } from '../../../pages/localChatRoom';
 
-const VideoConversation: React.FC<> = () => {
+const VideoConversation: React.FC<{ mode: { type: Mode, creator: boolean, target: boolean }}> = ({ mode }) => {
   const callElement = useRef(null);
   const localVideoElement = useRef(null);
   const remoteVideoElement = useRef(null);
@@ -22,7 +23,7 @@ const VideoConversation: React.FC<> = () => {
           userName: socket.auth.userName,
           localVideoElement: localVideoElement.current,
           remoteVideoElement: remoteVideoElement.current,
-        }).init();
+        }).init({ creator: mode.creator, target: mode.target });
         setConversationManager(cm);
       }
     }

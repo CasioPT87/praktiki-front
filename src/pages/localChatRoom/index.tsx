@@ -9,6 +9,10 @@ import UsersConnected from '../../components/chatRoom/users-connected';
 import ConversationRequestHub from '../../components/chatRoom/conversation-request-hub';
 import VideoConversation from '../../components/functional/videoConversation';
 
+export enum Mode {
+  localChat = 'localChat',
+  call = 'call',
+}
 
 const ChatRoom: React.FC<{ user: User; urlParams: UrlParams }> = ({
   user,
@@ -18,6 +22,11 @@ const ChatRoom: React.FC<{ user: User; urlParams: UrlParams }> = ({
 
   const sockets = useContext(MessagesSocketContext);
   const [hasJoinedChat, setHasJoinedChat] = useState<boolean>(false);
+  const [mode, setMode] = useState<{
+    type: Mode;
+    creator: boolean;
+    target: boolean;
+  }>({ type: Mode.localChat, creator: false, target: false });
   const locationChatSocket = sockets?.text || (null as Socket | null);
   const privateChatSocket = sockets?.video || (null as Socket | null);
 
@@ -41,21 +50,24 @@ const ChatRoom: React.FC<{ user: User; urlParams: UrlParams }> = ({
 
   return (
     <div className="chat-container">
-      <Messages locationChatSocket={locationChatSocket} />
-      <MessageTextArea
-        locationChatSocket={locationChatSocket}
-      />
+      {mode.type === Mode.localChat && (<>
+        <Messages locationChatSocket={locationChatSocket} />
+      <MessageTextArea locationChatSocket={locationChatSocket} />
       <UsersConnected
         locationChatSocket={locationChatSocket}
         privateChatSocket={privateChatSocket}
         user={user}
       />
-      <ConversationRequestHub privateChatSocket={privateChatSocket} />
-      <VideoConversation />
+      <ConversationRequestHub
+        privateChatSocket={privateChatSocket}
+        setMode={setMode}
+      />
+      </>)}
+      {mode.type === Mode.call && (<>
+        <VideoConversation mode={mode}/>
+        </>)}
     </div>
   );
 };
-
-
 
 export default ChatRoom;
