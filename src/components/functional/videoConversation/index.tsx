@@ -10,10 +10,9 @@ const VideoConversation: React.FC<> = () => {
   const remoteVideoElement = useRef(null);
 
   const sockets = useContext(MessagesSocketContext);
-  const socket = sockets?.video || null as Socket | null
+  const socket = sockets?.video || (null as Socket | null);
   const [conversationManager, setConversationManager] =
     useState<ConversationManager>(null);
-  const [offers, setOffers] = useState<any[]>([])
 
   useEffect(() => {
     async function setUpConversationManager() {
@@ -23,7 +22,6 @@ const VideoConversation: React.FC<> = () => {
           userName: socket.auth.userName,
           localVideoElement: localVideoElement.current,
           remoteVideoElement: remoteVideoElement.current,
-          setOffers
         }).init();
         setConversationManager(cm);
       }
@@ -31,43 +29,17 @@ const VideoConversation: React.FC<> = () => {
     setUpConversationManager();
   }, [socket, localVideoElement, remoteVideoElement]);
 
-  function call() {
-    if (conversationManager) {
-      conversationManager.call()
-    }
-  }
-
-  function answer(offerObj) {
-    if (conversationManager) {
-      conversationManager.answer({ offerObj })
-    }
-  }
-
   return (
     <div>
       conversation
       <div className="container">
-        <div className="row mb-3 mt-3 justify-content-md-center">
-          {offers.map(offerObj => <button onClick={() => answer(offerObj)}>{'oferta de: ' + offerObj.offererUserName || 'oferta sin nombre ?'}</button>)}
-          <div id="user-name"></div>
-          <button
-            ref={callElement}
-            id="call"
-            className="btn btn-primary col-1"
-            onClick={call}
-          >
-            Call!
-          </button>
+        <div>
           <button id="hangup" className="col-1" className="btn btn-primary">
             Hangup
           </button>
-          <div id="answer" className="col"></div>
         </div>
         <div id="videos">
           <div id="video-wrapper">
-            <div id="waiting" className="btn btn-warning">
-              Waiting for answer...
-            </div>
             <video
               ref={localVideoElement}
               className="video-player"
@@ -77,6 +49,7 @@ const VideoConversation: React.FC<> = () => {
               controls
             ></video>
           </div>
+          <div id="video-wrapper">
           <video
             ref={remoteVideoElement}
             className="video-player"
@@ -85,6 +58,7 @@ const VideoConversation: React.FC<> = () => {
             playsInline
             controls
           ></video>
+          </div>
         </div>
       </div>
     </div>

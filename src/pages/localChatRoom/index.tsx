@@ -7,6 +7,7 @@ import Messages from '../../components/chatRoom/messages';
 import MessageTextArea from '../../components/chatRoom/messages-text-area';
 import UsersConnected from '../../components/chatRoom/users-connected';
 import ConversationRequestHub from '../../components/chatRoom/conversation-request-hub';
+import VideoConversation from '../../components/functional/videoConversation';
 
 
 const ChatRoom: React.FC<{ user: User; urlParams: UrlParams }> = ({
@@ -50,6 +51,7 @@ const ChatRoom: React.FC<{ user: User; urlParams: UrlParams }> = ({
         user={user}
       />
       <ConversationRequestHub privateChatSocket={privateChatSocket} />
+      <VideoConversation />
     </div>
   );
 };

@@ -81,7 +81,6 @@ export class ConversationManager {
   socket: any = null;
   localVideoElement: HTMLVideoElement | null = null;
   remoteVideoElement: HTMLVideoElement | null = null;
-  setOffers: React.Dispatch<React.SetStateAction<any[]>>;
 
   constructor({
     socket,
