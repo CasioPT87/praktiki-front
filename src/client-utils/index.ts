@@ -88,8 +88,8 @@ export async function fetchUserBackend({
         : { headers: { Authorization: `Bearer ${token}` } }),
     });
     if (response.ok) {
-      const user = await response.json();
-      return user;
+      const data = await response.json();
+      return data.user;
     }
     return null;
   } catch (e) {

@@ -7,6 +7,8 @@ import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
 import { PlainObject } from '../../types';
 import HttpClient from '../../client-utils/httpClient';
+import { UserRole } from '../../utils';
+import { deleteCookie } from '../../client-utils';
 
 function calculateCenter(positions: Array<[number, number]>): [number, number] {
   if (!positions.length) return null;
@@ -30,7 +32,7 @@ L.Icon.Default.mergeOptions({
   shadowUrl: require('leaflet/dist/images/marker-shadow.png'),
 });
 
-const Home: React.FC<{ user: PlainObject | null }> = ({ user }) => {
+const Home: React.FC<{ user: PlainObject | null, setUser: React.Dispatch<any> }> = ({ user, setUser }) => {
   const [localChats, setLocalChats] = useState([]);
 
   const positionMadrid = [40.4168, -3.7038]; // Example coordinates
@@ -47,57 +49,73 @@ const Home: React.FC<{ user: PlainObject | null }> = ({ user }) => {
   }, []);
 
   function goToChatRoom(locationChatId) {
-    goTo({ pageName: 'locationChatRoom', urlParams: { id: String(locationChatId) }})
+    goTo({
+      pageName: 'locationChatRoom',
+      urlParams: { id: String(locationChatId) },
+    });
   }
 
-  if (localChats.length === 0) return null
-  console.log(localChats)
+  if (localChats.length === 0) return null;
 
   return (
-    <div>
-      <h1>Home</h1>
-
-      <button
-        id="test-home-goto-conversation"
-        className="button-test"
-        onClick={() => goTo({ pageName: 'conversation' })}
-      >
-        Go to Video Conversation
-      </button>
-      <button
-        id="test-home-goto-login"
-        className="button-test"
-        onClick={() => goTo({ pageName: 'login' })}
-      >
-        Go to Login
-      </button>
-      <button
-        id="test-home-goto-login"
-        className="button-test"
-        onClick={() => goTo({ pageName: 'register' })}
-      >
-        Go to Register
-      </button>
+    <div className="page">
       {user && <pre>{JSON.stringify(user)}</pre>}
-      <p id="logged">logged: {user ? 'true' : 'false'}</p>
+      <div className="page__header">
+        <div className="page__logo">Praktiki</div>
+        <div className="page__actions">
+          {!user || user?.value === UserRole.guest && (
+            <>
+              <button
+                className="page__button"
+                onClick={() => goTo({ pageName: 'login' })}
+              >
+                Sign in
+              </button>
+              <button
+                className="page__button"
+                onClick={() => goTo({ pageName: 'register' })}
+              >
+                Sign Up
+              </button>
+            </>
+          )}
+          {user && user?.value === UserRole.registered && (
+            <>
+              <button
+                className="page__button"
+                onClick={() => {
+                  deleteCookie({ user }).then(({ success }) => {
+                    if (success) setUser(null);
+                  })
+                }}
+              >
+                Log Out
+              </button>
+            </>
+          )}
+          {user && <div className="page__user">{user?.name}</div>}
+        </div>
+      </div>
 
-      <MapContainer
-        center={calculateCenter([positionMadrid, positionLondon])}
-        zoom={4}
-        scrollWheelZoom={true}
-        style={{ height: '50vh', width: '50%' }}
-      >
-        <TileLayer
-          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-        />
-        {localChats.map((localChat) => (
-          <Marker
-            position={[localChat.y_coordinates, localChat.x_coordinates]}
-            eventHandlers={{ click: () => goToChatRoom(localChat.id) }}
-          ></Marker>
-        ))}
-      </MapContainer>
+      <div className="page__map-container">
+        <MapContainer
+          className="page__map"
+          center={calculateCenter([positionMadrid, positionLondon])}
+          zoom={4}
+          scrollWheelZoom={true}
+        >
+          <TileLayer
+            attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+          />
+          {localChats.map((localChat) => (
+            <Marker
+              position={[localChat.y_coordinates, localChat.x_coordinates]}
+              eventHandlers={{ click: () => goToChatRoom(localChat.id) }}
+            ></Marker>
+          ))}
+        </MapContainer>
+      </div>
     </div>
   );
 };

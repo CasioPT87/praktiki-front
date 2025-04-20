@@ -69,7 +69,7 @@ function Login({
           className="button-test-2"
           onClick={signOut}
         >
-          delete season!!!
+          delete session!!!
         </button>
       )}
       {user && <pre>{JSON.stringify(user)}</pre>}

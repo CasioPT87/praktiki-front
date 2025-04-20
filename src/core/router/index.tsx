@@ -10,7 +10,7 @@ import {
 import { Page, PageName } from '../../types';
 import { usePreloadData } from '../../hooks';
 import { PreloadDataContext, MessagesSocketContext } from '../../contexts';
-import { fetchUserBackend, loginAsGuest, setCookieServer } from '../../client-utils';
+import { loginAsGuest } from '../../client-utils';
 import { getTextMessagesManager, getVideoMessagesManager } from '../messages';
 import Modal from '../../components/ui/modal';
 import Button from '../../components/ui/button';
@@ -87,21 +87,6 @@ interface AuthProps {
 const Auth: React.FC<AuthProps> = ({ initialUser, children, page }: AuthProps) => {
   const [user, setUser] = useState<Object | null>(initialUser);
 
-  useEffect(() => {
-    if (typeof document !== 'undefined') {
-      // this should only happen in developent
-      async function authenticateWithUrlToken(token: string) {
-        const user = await fetchUserBackend({ token });
-        if (user) {
-          setUser({ user });
-          await setCookieServer({ token });
-        }
-      }
-      const urlParams = new URLSearchParams(window.location.search);
-      const token = urlParams.get('token');
-      if (token) authenticateWithUrlToken(token);
-    }
-  }, []);
   if (!user && !pageDoesNotNeedUser({ page })) {
     return (
       <>
@@ -110,7 +95,7 @@ const Auth: React.FC<AuthProps> = ({ initialUser, children, page }: AuthProps) =
           <Button text="Create account" onClick={() => goTo({ pageName: 'register', redirect: true, pushHistoryState: false })} />
           <Button text="Login as guest" onClick={async () => {
             const user = await loginAsGuest()
-            setUser({ user });
+            setUser(user);
           }} />
         </Modal>
         <>{children({ user, setUser })}</>
