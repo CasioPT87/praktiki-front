@@ -75,7 +75,6 @@ export class ConversationManager {
   remoteStreamManager: ConversationStreamManager | null = null;
   offers: OfferObj[] = [];
   userName: string | null = null;
-  didIOffer: boolean = false;
   socket: any = null;
   localVideoElement: HTMLVideoElement | null = null;
   remoteVideoElement: HTMLVideoElement | null = null;
@@ -118,37 +117,33 @@ export class ConversationManager {
     this.localStreamManager.addTracksToConnection({
       peerConnection: this.peerConnection,
     });
-    this.setSocketListeners();
+    this.setSocketIceCandidateListeners();
     this.setPeerConnectionListeners();
 
     return this;
   };
 
-  setSocketListeners = () => {
-    this.socket.on(
-      'receivedIceCandidateFromServer',
-      (iceCandidate: RTCIceCandidateInit) => {
-        if (this.peerConnection)
-          this.peerConnection.addIceCandidate(iceCandidate);
-      }
-    );
-    this.socket.on('answerResponse', (offerObj: OfferObj) => {
-      if (this.peerConnection)
-        this.peerConnection.setRemoteDescription(offerObj.answer);
-    });
+  setSocketIceCandidateListeners = () => {
+    // lo dejamos ya aqui para cuando ambas partes empiecen a mandarse ice candidates
+    const { socket, peerConnection } = this
+    if (!socket || !peerConnection) return
+    socket.on('ice-candidates:create', (candidate: RTCIceCandidateInit) => {
+      peerConnection.addIceCandidate(candidate)
+    })
   };
 
   setPeerConnectionListeners = () => {
     if (!this.peerConnection) return;
+    // esto es tanto para creador como el que recibe. Los dos crean ice candidates y los dos se los tienen que mandar mutuamente
     this.peerConnection.addEventListener(
       'icecandidate',
       (RTCPeerConnectionIceEvent) => {
         // disparado por peerConnection.setLocalDescription
         if (RTCPeerConnectionIceEvent.candidate) {
-          this.socket.emit('sendIceCandidateToSignalingServer', {
+          this.socket.emit('ice-candidates:create', {
             iceCandidate: RTCPeerConnectionIceEvent.candidate,
-            iceUserName: this.userName,
-            didIOffer: this.didIOffer,
+            privateChatId: this.privateChatId,
+            isCreator: this.isCreator
           });
         }
       }
@@ -166,12 +161,14 @@ export class ConversationManager {
   call = async () => {
     const { socket, peerConnection, localStreamManager } = this;
     if (!localStreamManager || !peerConnection || !socket) return;
-    // this.didIOffer = true;
     const offer: RTCSessionDescriptionInit | undefined =
       await peerConnection.createOffer();  // generates an SDP offer
     if (!offer) return;
-    peerConnection.setLocalDescription(offer); // triggers the ICE candidate gathering process (when creating an offer). Triggers the event (icecandidate) each time an icecandidate is found.
-    //socket.emit('offer:create', { offer, privateChatId: this.privateChatId });
+    socket.emit('offer:create', { offer, privateChatId: this.privateChatId });
+    socket.on('offer:answer', (answerOffer: RTCSessionDescriptionInit) => {
+      peerConnection.setLocalDescription(offer); // triggers the ICE candidate gathering process (when creating an offer). Triggers the event (icecandidate) each time an icecandidate is found.
+      peerConnection.setRemoteDescription(answerOffer);
+    })
   }
 
   answer = async () => {
@@ -181,24 +178,8 @@ export class ConversationManager {
       peerConnection.setRemoteDescription(offer);
       const answer = await peerConnection.createAnswer();
       peerConnection.setLocalDescription(answer);
-    });
 
-    if (!peerConnection || !socket) return;
-    // this.didIOffer = false
-    // peerConnection.setRemoteDescription(offerObj.offer);
-    const answer = await peerConnection.createAnswer();
-    peerConnection.setLocalDescription(answer);
-    //offerObj.answer = answer;
-    // le mandamos el offerObj (con una answer que le hemos metido)
-    // esperamos que nos devuelva los ice candidates
-    const offerIceCandidates: RTCIceCandidateInit[] = await socket.emitWithAck(
-      'offer:accept',
-      //offerObj
-    );
-
-    // le metemos los iceCandidates a la peerConnection
-    offerIceCandidates.forEach((c) => {
-      peerConnection.addIceCandidate(c);
+      socket.emit('offer:answer', { offerAnswer: answer, privateChatId: this.privateChatId })
     });
   }
 }
