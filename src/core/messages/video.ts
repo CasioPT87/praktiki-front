@@ -171,22 +171,29 @@ export class ConversationManager {
       await peerConnection.createOffer();  // generates an SDP offer
     if (!offer) return;
     peerConnection.setLocalDescription(offer); // triggers the ICE candidate gathering process (when creating an offer). Triggers the event (icecandidate) each time an icecandidate is found.
-    socket.emit('offer:create', { offer, privateChatId: this.privateChatId });
+    //socket.emit('offer:create', { offer, privateChatId: this.privateChatId });
   }
 
-  answer = async ({ offerObj }: { offerObj: OfferObj }) => {
-    const { socket, peerConnection } = this;
+  answer = async () => {
+    const { socket, peerConnection } = this
+    socket.on('offer:create', async (offer: RTCSessionDescriptionInit) => {
+      if (!peerConnection) return
+      peerConnection.setRemoteDescription(offer);
+      const answer = await peerConnection.createAnswer();
+      peerConnection.setLocalDescription(answer);
+    });
+
     if (!peerConnection || !socket) return;
-    this.didIOffer = false
-    peerConnection.setRemoteDescription(offerObj.offer);
+    // this.didIOffer = false
+    // peerConnection.setRemoteDescription(offerObj.offer);
     const answer = await peerConnection.createAnswer();
     peerConnection.setLocalDescription(answer);
-    offerObj.answer = answer;
+    //offerObj.answer = answer;
     // le mandamos el offerObj (con una answer que le hemos metido)
     // esperamos que nos devuelva los ice candidates
     const offerIceCandidates: RTCIceCandidateInit[] = await socket.emitWithAck(
       'offer:accept',
-      offerObj
+      //offerObj
     );
 
     // le metemos los iceCandidates a la peerConnection
