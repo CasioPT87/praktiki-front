@@ -52,7 +52,7 @@ if (process.env.NODE_ENV === "production") {
     if (urlToken || localStorageToken) {
       const token = urlToken || localStorageToken;
       user = await fetchUserBackend({ token });
-      if (token) setCookieServer({ token });
+      if (token && user) setCookieServer({ token });
     }
 
     if (!user) user = await fetchUserBackend({ token: null });

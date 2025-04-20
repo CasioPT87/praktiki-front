@@ -46,7 +46,6 @@ export type RequestOptions = {
   headers?: HeadersInit;
   queryParams?: Record<string, any>;
   body?: Record<string, any>;
-  showHttpErrors?: boolean;
 };
 
 export type Method = "GET" | "POST" | "PUT" | "DELETE";

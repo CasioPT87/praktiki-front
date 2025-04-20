@@ -45,7 +45,7 @@ import {
     private async request(
       method: Method,
       endpoint: string,
-      { headers, queryParams, body, showHttpErrors = false }: RequestOptions = {},
+      { headers, queryParams, body }: RequestOptions = {},
     ): Promise<BuildResponse> {
       let response;
       let responseData = null;
@@ -57,6 +57,7 @@ import {
           method,
           headers: {
             "Content-Type": "application/json",
+            credentials: 'include',
             ...(token ? { Authorization: `Bearer ${token}` } : {}),
             ...headers,
           },

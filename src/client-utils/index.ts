@@ -188,7 +188,9 @@ export async function deleteBackendCookie({ user }: { user: User }): Promise<{ s
 export const loginAsGuest = async () => {
   const response = await new HttpClient(process.env.BACKEND_URL).get('/users/register/guest')
   if (response.ok) {
-    console.log(response.data.data)
-    return response.data?.data || null
+    if (process.env.NODE_ENV !== 'production' && typeof document !== 'undefined' && process.env.APP_NAME) {
+      localStorage.setItem(process.env.APP_NAME, response.data?.token)
+    }
+    return response.data?.user || null
   }
 }
