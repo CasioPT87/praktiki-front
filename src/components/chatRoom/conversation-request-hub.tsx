@@ -50,6 +50,7 @@ const ConversationRequestHub: React.FC<{
     privateChatSocket.on(
       'private-chat:start',
       ({ creator, target, privateChatId }: { creator: boolean; target: boolean, privateChatId: string }) => {
+        console.log('private chat id: ', privateChatId)
         setMode({
           type: Mode.call,
           creator,

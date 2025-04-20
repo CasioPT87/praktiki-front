@@ -166,12 +166,12 @@ export class ConversationManager {
   call = async () => {
     const { socket, peerConnection, localStreamManager } = this;
     if (!localStreamManager || !peerConnection || !socket) return;
-    this.didIOffer = true;
+    // this.didIOffer = true;
     const offer: RTCSessionDescriptionInit | undefined =
       await peerConnection.createOffer();  // generates an SDP offer
     if (!offer) return;
     peerConnection.setLocalDescription(offer); // triggers the ICE candidate gathering process (when creating an offer). Triggers the event (icecandidate) each time an icecandidate is found.
-    socket.emit('newOffer', offer);
+    socket.emit('offer:create', { offer, privateChatId: this.privateChatId });
   }
 
   answer = async ({ offerObj }: { offerObj: OfferObj }) => {

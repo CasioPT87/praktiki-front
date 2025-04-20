@@ -24,6 +24,9 @@ const VideoConversation: React.FC<{ mode: { type: Mode, creator: boolean, target
           localVideoElement: localVideoElement.current,
           remoteVideoElement: remoteVideoElement.current,
         }).init({ creator: mode.creator, target: mode.target, privateChatId: mode.privateChatId });
+        console.log('creator, ', mode.creator)
+        if (mode.creator) cm?.call()
+        //else cm?.answer()
         setConversationManager(cm);
       }
     }
