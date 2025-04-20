@@ -39,7 +39,7 @@ const UsersConnected: React.FC<{
             <div
               key={userId}
               onClick={() => {
-                if (userId === user.data.id) return;
+                if (userId === user.id) return;
                 requestPrivateChat(userId);
               }}
             >
