@@ -1,4 +1,5 @@
-import { User } from "../../types";
+import { Socket } from 'socket.io-client';
+import { User } from '../../types';
 
 type ConversationStreamManagerType = 'local' | 'remote';
 type OfferObj = {
@@ -26,10 +27,10 @@ class ConversationStreamManager {
     this.type = type;
   }
 
-  getStream() {
+  async getStream(): Promise<MediaStream> {
     if (this.type === 'local') {
       // cogemos el stream de la camara de nuestro device
-      return navigator.mediaDevices.getUserMedia({
+      return await navigator.mediaDevices.getUserMedia({
         video: true,
         audio: true,
       });
@@ -75,11 +76,11 @@ export class ConversationManager {
   remoteStreamManager: ConversationStreamManager | null = null;
   offers: OfferObj[] = [];
   userName: string | null = null;
-  socket: any = null;
+  socket: Socket | null = null;
   localVideoElement: HTMLVideoElement | null = null;
   remoteVideoElement: HTMLVideoElement | null = null;
-  isCreator: boolean = false
-  privateChatId: string | null = null
+  isCreator: boolean = false;
+  privateChatId: string | null = null;
 
   constructor({
     socket,
@@ -87,7 +88,7 @@ export class ConversationManager {
     localVideoElement,
     remoteVideoElement,
   }: {
-    socket: any;
+    socket: Socket;
     userName: string;
     localVideoElement: HTMLVideoElement;
     remoteVideoElement: HTMLVideoElement;
@@ -98,11 +99,19 @@ export class ConversationManager {
     this.remoteVideoElement = remoteVideoElement;
   }
 
-  init = async ({ creator, target, privateChatId }: { creator: boolean, target: boolean, privateChatId: string }) => {
+  init = async ({
+    creator,
+    target,
+    privateChatId,
+  }: {
+    creator: boolean;
+    target: boolean;
+    privateChatId: string;
+  }) => {
     if (!this.localVideoElement || !this.remoteVideoElement) return;
-    if (!privateChatId) return 
-    this.privateChatId = privateChatId
-    this.isCreator = creator
+    if (!privateChatId) return;
+    this.privateChatId = privateChatId;
+    this.isCreator = creator;
     this.localStreamManager = new ConversationStreamManager({
       type: 'local',
       videoElement: this.localVideoElement,
@@ -125,11 +134,11 @@ export class ConversationManager {
 
   setSocketIceCandidateListeners = () => {
     // lo dejamos ya aqui para cuando ambas partes empiecen a mandarse ice candidates
-    const { socket, peerConnection } = this
-    if (!socket || !peerConnection) return
+    const { socket, peerConnection } = this;
+    if (!socket || !peerConnection) return;
     socket.on('ice-candidates:create', (candidate: RTCIceCandidateInit) => {
-      peerConnection.addIceCandidate(candidate)
-    })
+      peerConnection.addIceCandidate(candidate);
+    });
   };
 
   setPeerConnectionListeners = () => {
@@ -139,11 +148,11 @@ export class ConversationManager {
       'icecandidate',
       (RTCPeerConnectionIceEvent) => {
         // disparado por peerConnection.setLocalDescription
-        if (RTCPeerConnectionIceEvent.candidate) {
+        if (RTCPeerConnectionIceEvent.candidate && this.socket) {
           this.socket.emit('ice-candidates:create', {
             iceCandidate: RTCPeerConnectionIceEvent.candidate,
             privateChatId: this.privateChatId,
-            isCreator: this.isCreator
+            isCreator: this.isCreator,
           });
         }
       }
@@ -162,24 +171,52 @@ export class ConversationManager {
     const { socket, peerConnection, localStreamManager } = this;
     if (!localStreamManager || !peerConnection || !socket) return;
     const offer: RTCSessionDescriptionInit | undefined =
-      await peerConnection.createOffer();  // generates an SDP offer
+      await peerConnection.createOffer(); // generates an SDP offer
     if (!offer) return;
     socket.emit('offer:create', { offer, privateChatId: this.privateChatId });
     socket.on('offer:answer', (answerOffer: RTCSessionDescriptionInit) => {
       peerConnection.setLocalDescription(offer); // triggers the ICE candidate gathering process (when creating an offer). Triggers the event (icecandidate) each time an icecandidate is found.
       peerConnection.setRemoteDescription(answerOffer);
-    })
-  }
+    });
+  };
 
   answer = async () => {
-    const { socket, peerConnection } = this
+    const { socket, peerConnection } = this;
+    if (!socket) return
+
     socket.on('offer:create', async (offer: RTCSessionDescriptionInit) => {
-      if (!peerConnection) return
+      if (!peerConnection) return;
       peerConnection.setRemoteDescription(offer);
       const answer = await peerConnection.createAnswer();
       peerConnection.setLocalDescription(answer);
 
-      socket.emit('offer:answer', { offerAnswer: answer, privateChatId: this.privateChatId })
+      socket.emit('offer:answer', {
+        offerAnswer: answer,
+        privateChatId: this.privateChatId,
+      });
     });
+  };
+
+  async finish() {
+    if (this.peerConnection) {
+      this.peerConnection.close();
+      this.peerConnection = null;
+    }
+
+    if (this.localStreamManager) {
+      (await this.localStreamManager.getStream()).getTracks().forEach(track => track.stop());
+      this.localStreamManager.stream = null
+      this.localStreamManager.videoElement = null
+    }
+    if (this.remoteStreamManager) {
+      (await this.remoteStreamManager.getStream()).getTracks().forEach(track => track.stop());
+      this.remoteStreamManager.stream = null
+      this.remoteStreamManager.videoElement = null
+    }
+    this.remoteVideoElement?.remove()
+    this.localVideoElement?.remove()
+    if (this.socket) {
+      this.socket.removeAllListeners()
+    }
   }
 }

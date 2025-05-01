@@ -65,7 +65,7 @@ const ChatRoom: React.FC<{ user: User; urlParams: UrlParams }> = ({
       />
       </>)}
       {mode.type === Mode.call && (<>
-        <VideoConversation mode={mode}/>
+        <VideoConversation mode={mode} user={user} />
         </>)}
     </div>
   );
