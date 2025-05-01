@@ -18,6 +18,8 @@ const VideoConversation: React.FC<{
   const localVideoElement = useRef(null);
   const remoteVideoElement = useRef(null);
   const [disconnectionMessage, setDisconnectionMessage] = useState<string>('');
+  const [messages, setMessages] = useState<string[]>([]);
+  const [message, setMessage] = useState<string>('');
   const sockets = useContext(MessagesSocketContext);
   const socket = sockets?.video || (null as Socket | null);
   const [conversationManager, setConversationManager] =
@@ -51,8 +53,8 @@ const VideoConversation: React.FC<{
     }
 
     const heartbeat = setInterval(() => {
-      socket.emit('heartbeat')
-    }, 10_000)
+      socket.emit('heartbeat');
+    }, 10_000);
 
     socket.on(
       'private-chat:disconnected',
@@ -76,22 +78,28 @@ const VideoConversation: React.FC<{
         } else {
           if (reason === 'controlled') {
             setDisconnectionMessage(
-              "Se ha desconectado la llamada desde el otro extremo"
+              'Se ha desconectado la llamada desde el otro extremo'
             );
           } else {
             setDisconnectionMessage(
-               "Se ha desconectado la llamada desde el otro extremo. Parece que ha tenido problemas con su conexion"
+              'Se ha desconectado la llamada desde el otro extremo. Parece que ha tenido problemas con su conexion'
             );
           }
         }
       }
     );
 
+    socket.on('private-chat-message:create', (text) => {
+      setMessages((currMessages) => {
+        return [...currMessages, text];
+      });
+    });
+
     const handleUnload = () => {
-      clearInterval(heartbeat)
+      clearInterval(heartbeat);
       socket.emit('private-chat:end');
     };
-  
+
     window.addEventListener('beforeunload', handleUnload);
     return () => {
       window.removeEventListener('beforeunload', handleUnload);
@@ -135,6 +143,29 @@ const VideoConversation: React.FC<{
               controls
             ></video>
           </div>
+          <ul>
+            {messages.map((mess) => (
+              <li>{mess}</li>
+            ))}
+          </ul>
+
+          <textarea
+            onInput={(e) => {
+              const text = e.currentTarget.value;
+              setMessage(text);
+            }}
+          />
+          <button
+            onClick={() => {
+              socket.emit('private-chat-message:create', {
+                text: message,
+                privateChatId: mode.privateChatId,
+              });
+              setMessage('')
+            }}
+          >
+            mandar mensaje
+          </button>
         </div>
       </div>
     </div>
