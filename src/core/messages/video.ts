@@ -31,7 +31,7 @@ class ConversationStreamManager {
       // cogemos el stream de la camara de nuestro device
       return navigator.mediaDevices.getUserMedia({
         video: true,
-        // audio: true,
+        audio: true,
       });
     } else {
       // creamos un stream vacio
