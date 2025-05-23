@@ -55,6 +55,18 @@ const Home: React.FC<{ user: PlainObject | null, setUser: React.Dispatch<any> }>
     });
   }
 
+  async function joinQueueRandomConversation() {
+    const response = await new HttpClient(process.env.BACKEND_URL).get('/random-queue/join/1')
+    if (response.ok) {
+      const data = response.data
+      console.log(data)
+      if (data.status = 'connecting') {
+      } else if (data.status = 'waiting') {
+
+      }
+    }
+  }
+
   if (localChats.length === 0) return null;
 
   return (
@@ -96,6 +108,10 @@ const Home: React.FC<{ user: PlainObject | null, setUser: React.Dispatch<any> }>
           {user && <div className="page__user">{user?.name}</div>}
         </div>
       </div>
+
+      {user && user?.value === UserRole.registered && (
+        <button onClick={joinQueueRandomConversation}>join random conversation</button>
+      )}
 
       <div className="page__map-container">
         <MapContainer
