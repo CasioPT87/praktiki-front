@@ -16,7 +16,7 @@ const development = {
     path: path.resolve(__dirname, "src/dist/dev"), // esta config de webpack la corre webpack-dev-server, que no escribe en disco. Por eso no se va a encontrar en archivo en esta localizacion
   },
   devServer: {
-    port: 8080,
+    port: 8090,
     static: {
       directory: path.join(__dirname, "src/dist/dev/"),
     },

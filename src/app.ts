@@ -19,7 +19,7 @@ app.use(express.static(path.join(process.cwd(), "./src/dist")));
 app.use(
   cors({
     origin:
-      process.env.NODE_ENV === "production" ? true : "http://localhost:8080", // true means same origin
+      process.env.NODE_ENV === "production" ? true : "http://localhost:8090", // true means same origin
     credentials: true, // Allow cookies to be sent
   }),
 );
