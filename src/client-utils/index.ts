@@ -3,7 +3,7 @@ import { User } from '../types';
 import HttpClient from './httpClient';
 
 const backendUrl = process.env.BACKEND_URL;
-const serverUrl = process.env.SERVER_URL;
+const serverUrl = process.env.FRONTEND_SERVER_PROTOCOL + process.env.FRONTEND_SERVER_HOST + ':' + process.env.FRONTEND_SERVER_PORT;
 const cookiesPath = process.env.COOKIES_PATH;
 const cookiesBackendName = process.env.PORTAL_SUFIX;
 const backendDeleteSessionPath = process.env.BACKEND_CLOSE_AUTH_PATH;

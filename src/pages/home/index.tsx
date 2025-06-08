@@ -59,7 +59,6 @@ const Home: React.FC<{ user: PlainObject | null, setUser: React.Dispatch<any> }>
     const response = await new HttpClient(process.env.BACKEND_URL).get('/random-queue/join/1')
     if (response.ok) {
       const data = response.data
-      console.log(data)
       if (data.status = 'connecting') {
       } else if (data.status = 'waiting') {
 

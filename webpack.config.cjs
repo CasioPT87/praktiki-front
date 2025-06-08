@@ -16,13 +16,17 @@ const development = {
     path: path.resolve(__dirname, "src/dist/dev"), // esta config de webpack la corre webpack-dev-server, que no escribe en disco. Por eso no se va a encontrar en archivo en esta localizacion
   },
   devServer: {
-    port: 8090,
+    port: process.env.FRONTEND_SERVER_PORT,
+    host: process.env.FRONTEND_SERVER_HOST,
     static: {
       directory: path.join(__dirname, "src/dist/dev/"),
     },
-    https: {
-      key: fs.readFileSync('cert.key'), // Path to your key
+    server: {
+      type: 'https',
+      options: {
+        key: fs.readFileSync('cert.key'), // Path to your key
       cert: fs.readFileSync('cert.crt'), // Path to your certificate
+      },
     },
     historyApiFallback: true,
     client: {
@@ -73,7 +77,9 @@ const development = {
       "BACKEND_URL",
       "COOKIES_PATH",
       "BACKEND_CLOSE_AUTH_PATH",
-      "SERVER_URL",
+      "FRONTEND_SERVER_PROTOCOL",
+      "FRONTEND_SERVER_HOST",
+      "FRONTEND_SERVER_PORT",
       "PORTAL_SUFIX",
       "APP_NAME"
     ]),
@@ -110,8 +116,10 @@ const productionFrontBundle = {
       "BACKEND_URL",
       "COOKIES_PATH",
       "BACKEND_CLOSE_AUTH_PATH",
-      "SERVER_URL",
-      "PORTAL_SUFIX", // no se usa en prod, pero hay que ponerlo para que el codigo no se rompa
+      "FRONTEND_SERVER_PROTOCOL",
+      "FRONTEND_SERVER_HOST",
+      "FRONTEND_SERVER_PORT",
+      "PORTAL_SUFIX",
       "APP_NAME"
     ]),
   ],
