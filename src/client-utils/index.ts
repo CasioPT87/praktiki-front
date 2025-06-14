@@ -1,3 +1,4 @@
+import { ChosenLanguages } from '../components/modal/auth';
 import { manageError } from '../tools';
 import { User } from '../types';
 import HttpClient from './httpClient';
@@ -185,8 +186,10 @@ export async function deleteBackendCookie({ user }: { user: User }): Promise<{ s
   }
 }
 
-export const loginAsGuest = async () => {
-  const response = await new HttpClient(process.env.BACKEND_URL).get('/users/register/guest')
+export const loginAsGuest = async (chosenLanguages: ChosenLanguages) => {
+  const response = await new HttpClient(process.env.BACKEND_URL).post('/users/register/guest', {
+    body: chosenLanguages
+  })
   if (response.ok) {
     if (process.env.NODE_ENV !== 'production' && typeof document !== 'undefined' && process.env.APP_NAME) {
       localStorage.setItem(process.env.APP_NAME, response.data?.token)
