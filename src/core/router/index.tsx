@@ -10,11 +10,9 @@ import {
 import { Page, PageName } from '../../types';
 import { usePreloadData } from '../../hooks';
 import { PreloadDataContext, MessagesSocketContext } from '../../contexts';
-import { loginAsGuest } from '../../client-utils';
 import { getTextMessagesManager, getVideoMessagesManager } from '../messages';
-import Modal from '../../components/ui/modal';
-import Button from '../../components/ui/button';
 import { pageDoesNotNeedUser } from '../../tools/pages';
+import AuthModal from '../../components/modal/auth';
 
 function usePageMonitor({ initialPath }: { initialPath: string }): {
   pageName: PageName;
@@ -90,14 +88,7 @@ const Auth: React.FC<AuthProps> = ({ initialUser, children, page }: AuthProps) =
   if (!user && !pageDoesNotNeedUser({ page })) {
     return (
       <>
-        <Modal initiallyOpen={true}>
-          <Button text="Login" onClick={() => goTo({ pageName: 'login', redirect: true, pushHistoryState: false })} />
-          <Button text="Create account" onClick={() => goTo({ pageName: 'register', redirect: true, pushHistoryState: false })} />
-          <Button text="Login as guest" onClick={async () => {
-            const user = await loginAsGuest()
-            setUser(user);
-          }} />
-        </Modal>
+        <AuthModal setUser={setUser} />
         <>{children({ user, setUser })}</>
       </>
     );
