@@ -27,6 +27,7 @@ export const getTextMessagesManager = () => {
 export const getVideoMessagesManager = () => {
   const VIDEO_NAMESPACE = '/video'
   if (typeof document !== 'undefined') {
+    let heartbeat: NodeJS.Timeout | null = null
     return import('socket.io-client')
       .then(async ({ io }) => {
         let socket = null
@@ -40,11 +41,16 @@ export const getVideoMessagesManager = () => {
             }
           });
         }
+
+        heartbeat = setInterval(() => {
+          socket.emit('heartbeat');
+        }, 10_000);
         
         return socket;
       })
       .catch((e) => {
         console.error(e.message);
+        if (heartbeat) clearInterval(heartbeat)
         return;
       });
   }

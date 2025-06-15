@@ -1,6 +1,9 @@
 import { compile } from "path-to-regexp";
 import routes from "../../../routes";
 import { PageName as PageNameType } from "../../../types";
+import { useContext } from "react";
+import { MessagesSocketContext } from "../../../contexts";
+import { Socket } from "socket.io-client";
 
 const goTo = ({
   pageName,

@@ -1,5 +1,5 @@
 // @ts-nocheck
-import React, { useEffect, useState } from 'react';
+import React, { useContext, useEffect, useState } from 'react';
 import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
 import goTo from '../../core/router/utils/goTo';
 import '../../styles/index.scss';
@@ -10,6 +10,7 @@ import HttpClient from '../../client-utils/httpClient';
 import { UserRole } from '../../utils';
 import { deleteCookie } from '../../client-utils';
 import { Language } from '../../components/functional/languages';
+import useClearData from '../../hooks/useClearData';
 
 function calculateCenter(positions: Array<[number, number]>): [number, number] {
   if (!positions.length) return null;
@@ -42,6 +43,7 @@ const Home: React.FC<{
 }> = ({ user, setUser }) => {
   const [localChats, setLocalChats] = useState([]);
   const [languages, setLanguages] = useState<Array<Language>>([]);
+  useClearData(['locationChat', 'privateChat'])
 
   const positionMadrid = [40.4168, -3.7038]; // Example coordinates
   const positionLondon = [51.5074, -0.1276]; // Example coordinates

@@ -1,13 +1,13 @@
-import React, { useState } from 'react';
+import React, { useContext, useEffect, useState } from 'react';
 import { jwtDecode, JwtPayload } from 'jwt-decode';
 import {
   loginUser,
   setCookieServer,
   deleteCookie,
 } from '../../client-utils';
-import goTo from '../../core/router/utils/goTo';
 import '../../styles/index.scss';
 import { User } from '../../types';
+import useClearData from '../../hooks/useClearData';
 
 function Login({
   setUser,
@@ -18,6 +18,7 @@ function Login({
 }): React.JSX.Element {
   const [nameValue, setNameValue] = useState<string>('');
   const [passValue, setPassValue] = useState<string>('');
+  useClearData(['locationChat', 'privateChat'])
 
   async function authenticate() {
     const response = await loginUser({

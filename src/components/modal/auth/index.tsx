@@ -3,7 +3,6 @@ import Modal from '../../ui/modal';
 import Button from '../../ui/button';
 import goTo from '../../../core/router/utils/goTo';
 import { loginAsGuest } from '../../../client-utils';
-import HttpClient from '../../../client-utils/httpClient';
 import ChooseLanguages, { Language, ChosenLanguages } from '../../functional/languages'
 
 const AuthModal: React.FC<{

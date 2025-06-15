@@ -52,10 +52,6 @@ const VideoConversation: React.FC<{
       return;
     }
 
-    const heartbeat = setInterval(() => {
-      socket.emit('heartbeat');
-    }, 10_000);
-
     socket.on(
       'private-chat:disconnected',
       ({

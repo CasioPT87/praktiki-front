@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useContext, useEffect, useState } from 'react';
 import { jwtDecode, JwtPayload } from 'jwt-decode';
 import {
   setCookieServer,
@@ -7,6 +7,7 @@ import {
 import '../../styles/index.scss';
 import ChooseLanguages, { ChosenLanguages } from '../../components/functional/languages';
 import Button from '../../components/ui/button';
+import useClearData from '../../hooks/useClearData';
 
 function Register({
   setUser,
@@ -21,6 +22,7 @@ function Register({
     fluentLanguageId: null,
     practiceLanguageId: null,
   });
+  useClearData(['locationChat', 'privateChat'])
 
   async function register() {
     const response = await registerUser({
