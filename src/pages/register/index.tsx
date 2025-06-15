@@ -5,6 +5,8 @@ import {
   registerUser,
 } from '../../client-utils';
 import '../../styles/index.scss';
+import ChooseLanguages, { ChosenLanguages } from '../../components/functional/languages';
+import Button from '../../components/ui/button';
 
 function Register({
   setUser,
@@ -15,11 +17,16 @@ function Register({
 }): React.JSX.Element {
   const [nameValue, setNameValue] = useState<string>('');
   const [passValue, setPassValue] = useState<string>('');
+  const [chosenLanguages, setChosenLanguages] = useState<ChosenLanguages>({
+    fluentLanguageId: null,
+    practiceLanguageId: null,
+  });
 
   async function register() {
     const response = await registerUser({
       username: nameValue,
       password: passValue,
+      chosenLanguages
     });
 
     const token = response?.token
@@ -29,6 +36,10 @@ function Register({
         setUser({ user });
         await setCookieServer({ token });
     }
+  }
+  
+  function readyToRegister() {
+    return nameValue && passValue && chosenLanguages.fluentLanguageId && chosenLanguages.practiceLanguageId
   }
 
   return (
@@ -43,14 +54,16 @@ function Register({
         password
         <input id="passField" type="text" value={passValue} onChange={(e) => setPassValue(e.target.value)}/>
       </label>
+      <ChooseLanguages onSelect={setChosenLanguages}/>
       </div>
-      <button
+      <Button
         id="test-login-login"
-        className="button-test-2"
-        onClick={register}
-      >
-        authentication!!!
-      </button>
+        disabled={!readyToRegister()}
+        text='authentication!!!'
+        onClick={() => register()}
+      />
+       
+     
       {user && <pre>{JSON.stringify(user)}</pre>}
       {!user && <p>not logged in</p>}
     </>

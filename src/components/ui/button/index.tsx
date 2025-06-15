@@ -1,12 +1,14 @@
 import React from 'react';
 
 const Button: React.FC<{
+  id?: string
   onClick: (e: React.SyntheticEvent) => void;
   text: string;
   disabled?: boolean;
-}> = ({ onClick, text, disabled = false }) => {
+}> = ({ id, onClick, text, disabled = false }) => {
   return (
     <button
+      {...(id && { id })}
       disabled={disabled}
       style={{
         padding: '10px 20px',

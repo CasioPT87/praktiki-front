@@ -9,6 +9,7 @@ import { PlainObject } from '../../types';
 import HttpClient from '../../client-utils/httpClient';
 import { UserRole } from '../../utils';
 import { deleteCookie } from '../../client-utils';
+import { Language } from '../../components/functional/languages';
 
 function calculateCenter(positions: Array<[number, number]>): [number, number] {
   if (!positions.length) return null;
@@ -30,10 +31,17 @@ L.Icon.Default.mergeOptions({
   iconRetinaUrl: require('leaflet/dist/images/marker-icon-2x.png'),
   iconUrl: require('leaflet/dist/images/marker-icon.png'),
   shadowUrl: require('leaflet/dist/images/marker-shadow.png'),
+  iconSize: [20, 30], // [width, height]
+  shadowSize: [20, 30], // Size of the shadow image
+  iconAnchor: [10, 40],
 });
 
-const Home: React.FC<{ user: PlainObject | null, setUser: React.Dispatch<any> }> = ({ user, setUser }) => {
+const Home: React.FC<{
+  user: PlainObject | null;
+  setUser: React.Dispatch<any>;
+}> = ({ user, setUser }) => {
   const [localChats, setLocalChats] = useState([]);
+  const [languages, setLanguages] = useState<Array<Language>>([]);
 
   const positionMadrid = [40.4168, -3.7038]; // Example coordinates
   const positionLondon = [51.5074, -0.1276]; // Example coordinates
@@ -48,6 +56,19 @@ const Home: React.FC<{ user: PlainObject | null, setUser: React.Dispatch<any> }>
     getLocations();
   }, []);
 
+  useEffect(() => {
+    async function fetchLanguages() {
+      const response = await new HttpClient(process.env.BACKEND_URL).get(
+        '/languages'
+      );
+      if (response.ok) {
+        const languages = response.data as any[];
+        setLanguages(languages);
+      }
+    }
+    fetchLanguages();
+  }, []);
+
   function goToChatRoom(locationChatId) {
     goTo({
       pageName: 'locationChatRoom',
@@ -56,14 +77,20 @@ const Home: React.FC<{ user: PlainObject | null, setUser: React.Dispatch<any> }>
   }
 
   async function joinQueueRandomConversation() {
-    const response = await new HttpClient(process.env.BACKEND_URL).get('/random-queue/join/1')
+    const response = await new HttpClient(process.env.BACKEND_URL).get(
+      '/random-queue/join/1'
+    );
     if (response.ok) {
-      const data = response.data
-      if (data.status = 'connecting') {
-      } else if (data.status = 'waiting') {
-
+      const data = response.data;
+      if ((data.status = 'connecting')) {
+      } else if ((data.status = 'waiting')) {
       }
     }
+  }
+
+  function getLanguageName(languageId: Language['id']) {
+    if (!languages.length) return '';
+    return languages.find((lang) => lang.id === languageId).name;
   }
 
   if (localChats.length === 0) return null;
@@ -74,30 +101,46 @@ const Home: React.FC<{ user: PlainObject | null, setUser: React.Dispatch<any> }>
       <div className="page__header">
         <div className="page__logo">Praktiki</div>
         <div className="page__actions">
-          {!user || user?.value === UserRole.guest && (
-            <>
-              <button
-                className="page__button"
-                onClick={() => goTo({ pageName: 'login' })}
-              >
-                Sign in
-              </button>
-              <button
-                className="page__button"
-                onClick={() => goTo({ pageName: 'register' })}
-              >
-                Sign Up
-              </button>
-            </>
-          )}
+          {!user ||
+            (user?.value === UserRole.guest && (
+              <>
+                {user?.value === UserRole.guest && (
+                  <>
+                    <div>
+                      fluent at: {getLanguageName(user.fluent_language_id)}
+                    </div>
+                    <div>
+                      want to practice:{' '}
+                      {getLanguageName(user.practice_language_id)}
+                    </div>
+                  </>
+                )}
+                <button
+                  className="page__button"
+                  onClick={() => goTo({ pageName: 'login' })}
+                >
+                  Sign in
+                </button>
+                <button
+                  className="page__button"
+                  onClick={() => goTo({ pageName: 'register' })}
+                >
+                  Sign Up
+                </button>
+              </>
+            ))}
           {user && user?.value === UserRole.registered && (
             <>
+              <div>fluent at: {getLanguageName(user.fluent_language_id)}</div>
+              <div>
+                want to practice: {getLanguageName(user.practice_language_id)}
+              </div>
               <button
                 className="page__button"
                 onClick={() => {
                   deleteCookie({ user }).then(({ success }) => {
                     if (success) setUser(null);
-                  })
+                  });
                 }}
               >
                 Log Out
@@ -109,7 +152,9 @@ const Home: React.FC<{ user: PlainObject | null, setUser: React.Dispatch<any> }>
       </div>
 
       {user && user?.value === UserRole.registered && (
-        <button onClick={joinQueueRandomConversation}>join random conversation</button>
+        <button onClick={joinQueueRandomConversation}>
+          join random conversation
+        </button>
       )}
 
       <div className="page__map-container">

@@ -13,9 +13,11 @@ const appName = process.env.APP_NAME
 export async function registerUser({
   username,
   password,
+  chosenLanguages
 }: {
   username: string;
   password: string;
+  chosenLanguages: ChosenLanguages
 }): Promise<{ token: string } | null> {
   try {
     if (!backendUrl) throw new Error('Problem finding global url');
@@ -24,6 +26,7 @@ export async function registerUser({
       body: JSON.stringify({
         username,
         password,
+        chosenLanguages
       }),
       headers: {
         'Content-Type': 'application/json',
