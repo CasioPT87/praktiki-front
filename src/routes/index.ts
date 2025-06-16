@@ -4,6 +4,7 @@ import { Routes } from "../types";
 import VideoConversation from "../components/functional/videoConversation";
 import Register from "../pages/register";
 import ChatRoom from "../pages/localChatRoom";
+import RandomVideoChat from "../pages/randomVideoChat";
 
 const routes: Routes = {
   home: {
@@ -22,6 +23,10 @@ const routes: Routes = {
   locationChatRoom: {
     path: "/location-chat/:id",
     pageComponent: ChatRoom,
+  },
+  randomVideoChat: {
+    path: "/random-video-chat",
+    pageComponent: RandomVideoChat
   },
 };
 

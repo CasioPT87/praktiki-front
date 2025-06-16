@@ -43,7 +43,7 @@ const Home: React.FC<{
 }> = ({ user, setUser }) => {
   const [localChats, setLocalChats] = useState([]);
   const [languages, setLanguages] = useState<Array<Language>>([]);
-  useClearData(['locationChat', 'privateChat'])
+  useClearData(['locationChat', 'privateChat']);
 
   const positionMadrid = [40.4168, -3.7038]; // Example coordinates
   const positionLondon = [51.5074, -0.1276]; // Example coordinates
@@ -76,18 +76,6 @@ const Home: React.FC<{
       pageName: 'locationChatRoom',
       urlParams: { id: String(locationChatId) },
     });
-  }
-
-  async function joinQueueRandomConversation() {
-    const response = await new HttpClient(process.env.BACKEND_URL).get(
-      '/random-queue/join/1'
-    );
-    if (response.ok) {
-      const data = response.data;
-      if ((data.status = 'connecting')) {
-      } else if ((data.status = 'waiting')) {
-      }
-    }
   }
 
   function getLanguageName(languageId: Language['id']) {
@@ -153,11 +141,9 @@ const Home: React.FC<{
         </div>
       </div>
 
-      {user && user?.value === UserRole.registered && (
-        <button onClick={joinQueueRandomConversation}>
-          join random conversation
-        </button>
-      )}
+      <button onClick={() => goTo({ pageName: 'randomVideoChat' })}>
+        join random conversation
+      </button>
 
       <div className="page__map-container">
         <MapContainer
